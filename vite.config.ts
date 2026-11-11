@@ -21,8 +21,6 @@ export default defineConfig(() => {
           'pwa-192x192.png',
           'pwa-512x512.png',
           'pwa-maskable-512x512.png',
-          'assets/images/mascot_student_piano.jpg',
-          'assets/images/mascot_student_piano_1794361003971.jpg',
         ],
         manifest: {
           id: '/',
