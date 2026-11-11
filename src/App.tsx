@@ -1100,9 +1100,9 @@ export default function App() {
     ctx.fillText(`Prática: ${currentChordData.didacticTip}`, 70, postItY + 80);
 
     // Rodapé
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = '500 12px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('Harmonia · Caderno Didático de Música & Piano', 50, 715);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
+    ctx.fillText('Harmonia · Caderno Didático · Desenvolvido por Tio Wander 🎹', 50, 715);
 
     setTimeout(() => {
       const dataUrl = canvas.toDataURL('image/png');
@@ -2332,6 +2332,20 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {/* Rodapé Didático com Créditos de Desenvolvimento */}
+        <div className="pt-6 pb-2 text-center border-t border-[#e8dfd1] space-y-1">
+          <p className="text-xs sm:text-sm font-extrabold text-[#1e3a8a] flex items-center justify-center gap-1.5 flex-wrap">
+            <span>Desenvolvido com carinho por</span>
+            <span className="bg-amber-300 text-amber-950 px-2.5 py-0.5 rounded-md rotate-[-1deg] border border-amber-400 font-black shadow-xs">
+              Tio Wander
+            </span>
+            <span>🎹</span>
+          </p>
+          <p className="text-[11px] text-slate-500 font-medium">
+            Harmonia · Caderno Didático Interativo de Música & Teclado
+          </p>
+        </div>
 
       </main>
 
