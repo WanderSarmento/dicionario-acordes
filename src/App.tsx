@@ -51,7 +51,6 @@ import {
 } from 'lucide-react';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
-import mascotImg from './assets/images/mascot_student_piano_1794361003971.jpg';
 
 /* =====================================================================
    1. SINTETIZADOR DE PIANO COM WEB AUDIO API (Sons realistas com harmônicos)
@@ -869,10 +868,13 @@ export default function App() {
     cadencia: false
   });
 
-  // Desafios Didáticos Práticos (Quiz)
+  // Desafios Didáticos Práticos (Quizzes Semanais por Assunto)
+  const [selectedQuizWeek, setSelectedQuizWeek] = useState<string>('todas');
   const [quizScore, setQuizScore] = useState<number>(0);
   const [quizAnswerFeedback, setQuizAnswerFeedback] = useState<string | null>(null);
+  const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
   const [currentQuizIndex, setCurrentQuizIndex] = useState<number>(0);
+  const [completedQuizIds, setCompletedQuizIds] = useState<number[]>([]);
 
   // Exportação PNG
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1485,57 +1487,432 @@ export default function App() {
     }, 200);
   };
 
-  // Desafios Didáticos Interativos (Quizzes de Fixação)
-  const QUIZ_QUESTIONS = [
+  // Trilhas de Quizzes Semanais por Assunto do Sistema
+  const WEEKLY_QUIZ_MODULES = [
     {
-      id: 1,
-      title: 'Desafio 1: Tônica & Centro',
-      question: 'Qual é o Grau 1 (Tônica) no campo harmônico e na escala de Dó Maior (C)?',
-      options: ['C (Dó Maior / Dó)', 'G (Sol Maior / Sol)', 'Am (Lá menor)', 'F (Fá Maior)'],
-      correctIndex: 0,
-      tip: 'A tônica é sempre o 1º grau que dá nome à escala e à tonalidade!'
+      id: 'todas',
+      weekLabel: 'Todas as Semanas',
+      shortTitle: 'Revisão Geral',
+      emoji: '🌟',
+      badgeColor: 'bg-amber-200 text-amber-950 border-amber-300',
+      description: 'Todos os 20 desafios práticos reunidos para testar seu domínio completo.'
     },
     {
-      id: 2,
-      title: 'Desafio 2: Tensão Máxima',
-      question: 'No tom de Dó Maior, qual acorde é o 5º Grau (Dominante) que pede resolução imediata?',
-      options: ['Dm7', 'Em7', 'G7 (Sol com Sétima)', 'F7M'],
-      correctIndex: 2,
-      tip: 'O 5º grau fica 7 semitons acima da tônica e contém o trítono!'
+      id: 'semana1',
+      weekLabel: 'Semana 1',
+      shortTitle: 'Escalas Maiores & Menores',
+      emoji: '🎼',
+      badgeColor: 'bg-emerald-200 text-emerald-950 border-emerald-300',
+      description: 'Fórmulas de Tons e Semitons, Escala Maior Natural, Menor Natural e Relativas.'
     },
     {
-      id: 3,
-      title: 'Desafio 3: Segredo das Inversões',
-      question: 'O que acontece ao tocar um acorde na 1ª Inversão?',
-      options: [
-        'O acorde muda de nome e vira menor',
-        'A terça do acorde passa a ser a nota mais grave (no baixo)',
-        'Todas as notas sobem uma oitava inteira',
-        'O acorde perde a sua função'
-      ],
-      correctIndex: 1,
-      tip: 'Inverter significa mudar a ordem das notas, colocando a terça ou a quinta no baixo!'
+      id: 'semana2',
+      weekLabel: 'Semana 2',
+      shortTitle: 'Campo Harmônico Maior & Menor',
+      emoji: '🎹',
+      badgeColor: 'bg-sky-200 text-sky-950 border-sky-300',
+      description: 'Os 7 graus em números naturais, funções harmônicas e substituição do 7º pelo 5º grau.'
     },
     {
-      id: 4,
-      title: 'Desafio 4: A Fórmula da Escala Maior',
-      question: 'Qual é a sequência de tons e semitons da Escala Maior natural?',
-      options: [
-        'Tom - Tom - Semitom - Tom - Tom - Tom - Semitom',
-        'Tom - Semitom - Tom - Tom - Semitom - Tom - Tom',
-        'Tom - Tom - Tom - Tom - Tom - Tom - Tom',
-        'Semitom - Tom - Semitom - Tom - Semitom - Tom - Semitom'
-      ],
-      correctIndex: 0,
-      tip: 'Lembre-se: T - T - S - T - T - T - S! Os semitons ficam entre os graus 3-4 e 7-1.'
+      id: 'semana3',
+      weekLabel: 'Semana 3',
+      shortTitle: 'Montagem de Acordes',
+      emoji: '🧱',
+      badgeColor: 'bg-amber-200 text-amber-950 border-amber-300',
+      description: 'A regra 4+3 (Maior) vs 3+4 (Menor), Tônica, Terça, Quinta e formação de tríades.'
+    },
+    {
+      id: 'semana4',
+      weekLabel: 'Semana 4',
+      shortTitle: 'Leitura de Cifras',
+      emoji: '🔤',
+      badgeColor: 'bg-purple-200 text-purple-950 border-purple-300',
+      description: 'Alfabeto musical de A a G, sufixos m, 7, 7M, diminuto (°), sus4 e barra invertida (/).'
+    },
+    {
+      id: 'semana5',
+      weekLabel: 'Semana 5',
+      shortTitle: 'Inversão de Acordes',
+      emoji: '🔄',
+      badgeColor: 'bg-rose-200 text-rose-950 border-rose-300',
+      description: 'Estado Fundamental, 1ª e 2ª Inversão, economia de movimento e condução de vozes.'
     }
   ];
 
+  const QUIZ_QUESTIONS = [
+    // ================= SEMANA 1: ESCALAS MAIORES E MENORES NATURAIS =================
+    {
+      id: 1,
+      weekId: 'semana1',
+      weekTitle: 'Semana 1 • Escalas Maiores e Menores Naturais',
+      title: 'Desafio 1.1: A Fórmula da Escala Maior',
+      question: 'Qual é a sequência exata de Tons (T) e Semitons (S) que forma qualquer Escala Maior Natural?',
+      options: [
+        'T - T - S - T - T - T - S',
+        'T - S - T - T - S - T - T',
+        'T - T - T - S - T - T - S',
+        'S - T - T - S - T - T - T'
+      ],
+      correctIndex: 0,
+      tip: 'Na Escala Maior, os semitons (meio tom) ficam sempre entre os graus 3→4 e 7→1 (T - T - S - T - T - T - S).',
+      demoLabel: '🔊 Ouvir Escala de Dó Maior (C)',
+      demoNotes: [261.63, 293.66, 329.63, 349.23, 392.00]
+    },
+    {
+      id: 2,
+      weekId: 'semana1',
+      weekTitle: 'Semana 1 • Escalas Maiores e Menores Naturais',
+      title: 'Desafio 1.2: Fórmula da Escala Menor Natural',
+      question: 'Ao montar uma Escala Menor Natural (ex: Lá menor), onde ficam localizados os semitons na fórmula?',
+      options: [
+        'Entre os graus 1→2 e 5→6',
+        'Entre os graus 2→3 e 5→6 (T - S - T - T - S - T - T)',
+        'Entre os graus 3→4 e 7→1',
+        'Apenas no último grau da escala'
+      ],
+      correctIndex: 1,
+      tip: 'A fórmula da Escala Menor Natural é T - S - T - T - S - T - T, com semitons entre o 2º e 3º grau e entre o 5º e 6º grau!',
+      demoLabel: '🔊 Ouvir Lá Menor Natural (Am)',
+      demoNotes: [220.00, 246.94, 261.63, 293.66, 329.63]
+    },
+    {
+      id: 3,
+      weekId: 'semana1',
+      weekTitle: 'Semana 1 • Escalas Maiores e Menores Naturais',
+      title: 'Desafio 1.3: Escala Relativa Menor',
+      question: 'Qual grau da Escala Maior revela a sua Escala Menor Natural Relativa (que usa exatamente as mesmas notas)?',
+      options: [
+        'Grau 2',
+        'Grau 4',
+        'Grau 6 (ex: em Dó Maior, o 6º grau é Lá menor)',
+        'Grau 7'
+      ],
+      correctIndex: 2,
+      tip: 'O 6º grau de qualquer escala maior é a sua relativa menor! Por isso Dó Maior (C) e Lá Menor (Am) usam apenas as teclas brancas.',
+      demoLabel: '🔊 Ouvir Dó Maior vs Lá Menor',
+      demoNotes: [220.00, 261.63, 329.63, 440.00]
+    },
+    {
+      id: 4,
+      weekId: 'semana1',
+      weekTitle: 'Semana 1 • Escalas Maiores e Menores Naturais',
+      title: 'Desafio 1.4: Passagem do Polegar na Escala',
+      question: 'Para tocar as 7 notas da escala de Dó Maior na mão direita de forma contínua e sem faltar dedos, qual é a técnica correta?',
+      options: [
+        'Tocar todas as teclas usando apenas o dedo indicador',
+        'Passar o Polegar (dedo 1) por baixo após o dedo 3 (Médio), seguindo 1-2-3 e depois 1-2-3-4-5',
+        'Pular duas teclas brancas com o dedo mínimo',
+        'Cruzar o dedo mínimo por cima do polegar'
+      ],
+      correctIndex: 1,
+      tip: 'O segredo da fluidez no teclado é o dedilhado 1-2-3 • 1-2-3-4-5, passando o polegar por baixo do dedo 3!',
+      demoLabel: '🔊 Ouvir Passagem 1-2-3-1-2-3-4-5',
+      demoNotes: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25]
+    },
+
+    // ================= SEMANA 2: CAMPO HARMÔNICO MAIOR E MENOR =================
+    {
+      id: 5,
+      weekId: 'semana2',
+      weekTitle: 'Semana 2 • Campo Harmônico Maior e Menor',
+      title: 'Desafio 2.1: Os Graus Maiores do Campo Maior',
+      question: 'No Campo Harmônico Maior (representado pelos graus naturais de 1 a 7), quais são os três graus que formam acordes MAIORES?',
+      options: [
+        'Graus 1, 2 e 3',
+        'Graus 1, 4 e 5 (Tônica, Subdominante e Dominante)',
+        'Graus 2, 3 e 6',
+        'Graus 4, 5 e 7'
+      ],
+      correctIndex: 1,
+      tip: 'No Campo Harmônico Maior: Graus 1, 4 e 5 são Maiores; Graus 2, 3 e 6 são menores; e o Grau 7 é meio-diminuto/diminuto!',
+      demoLabel: '🔊 Ouvir Graus 1, 4 e 5 em Dó (C - F - G)',
+      demoNotes: [261.63, 329.63, 392.00]
+    },
+    {
+      id: 6,
+      weekId: 'semana2',
+      weekTitle: 'Semana 2 • Campo Harmônico Maior e Menor',
+      title: 'Desafio 2.2: A Dica de Ouro do 7º Grau',
+      question: 'Conforme estudado na Apostila, na prática musical o 7º Grau (ex: B° em Dó Maior) pode ser facilmente substituído por qual acorde?',
+      options: [
+        'Pelo 1º Grau menor',
+        'Pelo 5º Grau na 1ª Inversão (ex: G/B em Dó Maior)',
+        'Pelo 2º Grau com quarta suspensa',
+        'Pelo 6º Grau aumentado'
+      ],
+      correctIndex: 1,
+      tip: 'B° tem as notas Si-Ré-Fá, e o 5º grau G/B tem Si-Ré-Sol! Por isso tocar o 5º grau na 1ª inversão (G/B) substitui o 7º grau com perfeição e sonoridade muito mais suave!',
+      demoLabel: '🔊 Ouvir G/B (5º Grau na 1ª Inv.)',
+      demoNotes: [246.94, 293.66, 392.00]
+    },
+    {
+      id: 7,
+      weekId: 'semana2',
+      weekTitle: 'Semana 2 • Campo Harmônico Maior e Menor',
+      title: 'Desafio 2.3: Tensão e Resolução (Dominante)',
+      question: 'Qual é o grau do Campo Harmônico que possui a função Dominante (tensão máxima que pede para voltar ao Grau 1)?',
+      options: [
+        'Grau 4 (Subdominante)',
+        'Grau 6 (Relativo)',
+        'Grau 5 (ex: G7 no tom de Dó Maior)',
+        'Grau 2'
+      ],
+      correctIndex: 2,
+      tip: 'O Grau 5 (especialmente com sétima, como G7) cria uma forte atração gravitacional que resolve com sensação de descanso no Grau 1 (C).',
+      demoLabel: '🔊 Ouvir G7 (Dominante)',
+      demoNotes: [246.94, 349.23, 392.00, 493.88]
+    },
+    {
+      id: 8,
+      weekId: 'semana2',
+      weekTitle: 'Semana 2 • Campo Harmônico Maior e Menor',
+      title: 'Desafio 2.4: Estrutura do Campo Harmônico Menor',
+      question: 'No Campo Harmônico Menor Natural (ex: Lá menor), qual é a qualidade dos Graus 1, 4 e 5?',
+      options: [
+        'Todos os três são acordes menores (Grau 1m, Grau 4m e Grau 5m)',
+        'Todos os três são acordes maiores',
+        'Todos são diminutos',
+        'Apenas o Grau 1 é menor e os demais são maiores'
+      ],
+      correctIndex: 0,
+      tip: 'No Campo Menor Natural, os graus 1, 4 e 5 são menores (em Lá menor: Am, Dm e Em), enquanto os graus 3, 6 e 7 são maiores (C, F e G)!',
+      demoLabel: '🔊 Ouvir Am (Grau 1 menor)',
+      demoNotes: [220.00, 261.63, 329.63]
+    },
+
+    // ================= SEMANA 3: MONTAGEM DE ACORDES MAIORES E MENORES =================
+    {
+      id: 9,
+      weekId: 'semana3',
+      weekTitle: 'Semana 3 • Montagem de Acordes Maiores e Menores',
+      title: 'Desafio 3.1: A Regra Infalível do Acorde Maior (4 + 3)',
+      question: 'Como montamos qualquer tríade MAIOR no teclado usando a contagem de semitons (teclas)?',
+      options: [
+        'Tônica + 3 semitons + 4 semitons',
+        'Tônica + 4 semitons (Terça Maior) + 3 semitons (Quinta Justa)',
+        'Tônica + 2 semitons + 5 semitons',
+        'Tônica + 5 semitons + 5 semitons'
+      ],
+      correctIndex: 1,
+      tip: 'Acorde MAIOR = Fórmula 4 + 3! Comece na Tônica, conte 4 semitons para achar a Terça Maior e mais 3 semitons para achar a Quinta!',
+      demoLabel: '🔊 Ouvir Dó Maior (C - E - G)',
+      demoNotes: [261.63, 329.63, 392.00]
+    },
+    {
+      id: 10,
+      weekId: 'semana3',
+      weekTitle: 'Semana 3 • Montagem de Acordes Maiores e Menores',
+      title: 'Desafio 3.2: A Regra Infalível do Acorde Menor (3 + 4)',
+      question: 'Se você já está montando um acorde Maior (ex: C = Dó - Mi - Sol), o que basta fazer para transformá-lo em Menor (Cm)?',
+      options: [
+        'Subir a Quinta meio tom para a direita',
+        'Descer apenas a Terça (nota do meio) meio tom para a esquerda (fórmula 3 + 4)',
+        'Mudar a Tônica para outra nota',
+        'Retirar a nota mais aguda'
+      ],
+      correctIndex: 1,
+      tip: 'A Terça define a alegria ou melancolia do acorde! Descer a nota do meio (Terça) 1 semitom transforma qualquer acorde Maior (4+3) em Menor (3+4)!',
+      demoLabel: '🔊 Ouvir Dó Menor (C - D# - G)',
+      demoNotes: [261.63, 311.13, 392.00]
+    },
+    {
+      id: 11,
+      weekId: 'semana3',
+      weekTitle: 'Semana 3 • Montagem de Acordes Maiores e Menores',
+      title: 'Desafio 3.3: Montando Ré Maior (D) na Prática',
+      question: 'Aplicando a regra 4 + 3 a partir da nota Ré (D), quais são as 3 notas que formam o acorde de Ré Maior?',
+      options: [
+        'Ré - Fá - Lá (isso seria Ré menor, pois de Ré a Fá há apenas 3 semitons)',
+        'Ré - Fá# - Lá (4 semitons de Ré até Fá# + 3 semitons até Lá)',
+        'Ré - Sol - Si',
+        'Ré - Mi - Sol#'
+      ],
+      correctIndex: 1,
+      tip: 'De Ré até Fá# temos 4 semitons (Ré#, Mi, Fá, Fá#), e de Fá# até Lá temos mais 3 semitons (Sol, Sol#, Lá). Resultado: D = Ré - Fá# - Lá!',
+      demoLabel: '🔊 Ouvir Ré Maior (D - F# - A)',
+      demoNotes: [293.66, 369.99, 440.00]
+    },
+    {
+      id: 12,
+      weekId: 'semana3',
+      weekTitle: 'Semana 3 • Montagem de Acordes Maiores e Menores',
+      title: 'Desafio 3.4: Função de Cada Nota na Tríade',
+      question: 'Em qualquer acorde de 3 notas (Tônica, Terça e Quinta), qual é o papel musical de cada uma?',
+      options: [
+        'A Quinta dá o nome, a Tônica diz se é maior/menor e a Terça é opcional',
+        'A Tônica dá o nome ao acorde, a Terça define se é Maior ou Menor, e a Quinta dá corpo e estabilidade',
+        'Todas as três notas têm exatamente a mesma função',
+        'Apenas a nota mais aguda define o nome do acorde'
+      ],
+      correctIndex: 1,
+      tip: 'Tônica = Identidade/Nome; Terça = Emoção (Maior ou Menor); Quinta = Corpo e preenchimento sonoro!',
+      demoLabel: '🔊 Ouvir Sol Maior (G - B - D)',
+      demoNotes: [293.66, 392.00, 493.88]
+    },
+
+    // ================= SEMANA 4: LEITURA DE CIFRAS =================
+    {
+      id: 13,
+      weekId: 'semana4',
+      weekTitle: 'Semana 4 • Leitura de Cifras',
+      title: 'Desafio 4.1: O Alfabeto das Cifras (A até G)',
+      question: 'No sistema universal de cifras, as letras A, B, C, D, E, F e G correspondem, respectivamente, a quais notas?',
+      options: [
+        'Dó, Ré, Mi, Fá, Sol, Lá, Si',
+        'Lá, Si, Dó, Ré, Mi, Fá, Sol',
+        'Sol, Fá, Mi, Ré, Dó, Si, Lá',
+        'Lá, Dó, Mi, Sol, Si, Ré, Fá'
+      ],
+      correctIndex: 1,
+      tip: 'O alfabeto musical começa na nota Lá! Portanto: A=Lá, B=Si, C=Dó, D=Ré, E=Mi, F=Fá e G=Sol.',
+      demoLabel: '🔊 Ouvir Lá (A) até Sol (G)',
+      demoNotes: [220.00, 246.94, 261.63, 293.66, 329.63, 349.23, 392.00]
+    },
+    {
+      id: 14,
+      weekId: 'semana4',
+      weekTitle: 'Semana 4 • Leitura de Cifras',
+      title: 'Desafio 4.2: Diferença entre "m", "7" e "7M"',
+      question: 'O que significam exatamente as cifras F, Fm, F7 e F7M?',
+      options: [
+        'Todas representam o mesmo acorde tocado em oitavas diferentes',
+        'F = Fá Maior | Fm = Fá menor | F7 = Fá Maior com 7ª menor | F7M = Fá Maior com 7ª Maior',
+        'Fm significa Fá Maior e F significa Fá menor',
+        'F7M significa Fá menor com sétima'
+      ],
+      correctIndex: 1,
+      tip: 'Letra sozinha é sempre MAIOR (F). O "m" minúsculo indica menor (Fm). O "7" sozinho é a 7ª menor dominante (F7), e "7M" (ou maj7) é a 7ª Maior doce (F7M)!',
+      demoLabel: '🔊 Ouvir F7M (Fá com 7ª Maior)',
+      demoNotes: [261.63, 329.63, 349.23, 440.00]
+    },
+    {
+      id: 15,
+      weekId: 'semana4',
+      weekTitle: 'Semana 4 • Leitura de Cifras',
+      title: 'Desafio 4.3: O Segredo da Barra Invertida (/)',
+      question: 'Quando você vê uma cifra com barra como "C/E" ou "G/B", o que a letra depois da barra indica?',
+      options: [
+        'Que você deve escolher apenas um dos dois acordes para tocar',
+        'AEsquerda da barra é o acorde e a Direita da barra é a nota mais grave que deve ficar no BAIXO',
+        'Que os dois acordes devem ser tocados ao mesmo tempo com as duas mãos misturadas',
+        'Que o acorde está em outra música'
+      ],
+      correctIndex: 1,
+      tip: 'Regra da Barra (/): [Acorde] / [Nota do Baixo]. Em "C/E", você toca o acorde de Dó Maior tendo a nota Mi (E) como a nota mais grave!',
+      demoLabel: '🔊 Ouvir C/E (Dó com baixo em Mi)',
+      demoNotes: [261.63, 329.63, 392.00]
+    },
+    {
+      id: 16,
+      weekId: 'semana4',
+      weekTitle: 'Semana 4 • Leitura de Cifras',
+      title: 'Desafio 4.4: Símbolos Especiais (#, b, °, sus4)',
+      question: 'O que significam os símbolos "#" (sustenido), "b" (bemol) e "°" (bolinha) nas cifras como F#m, Bb e B°?',
+      options: [
+        '# sobe meio tom, b desce meio tom, e ° indica acorde Diminuto',
+        '# desce um tom, b sobe um tom, e ° indica acorde Maior',
+        'São apenas enfeites tipográficos da partitura',
+        'Indicam com qual dedo da mão esquerda tocar'
+      ],
+      correctIndex: 0,
+      tip: 'Sustenido (#) avança 1 semitom para a direita; Bemol (b) volta 1 semitom para a esquerda; e (°) representa o acorde Diminuto!',
+      demoLabel: '🔊 Ouvir B° (Si Diminuto)',
+      demoNotes: [246.94, 293.66, 349.23]
+    },
+
+    // ================= SEMANA 5: INVERSÃO DE ACORDES =================
+    {
+      id: 17,
+      weekId: 'semana5',
+      weekTitle: 'Semana 5 • Inversão de Acordes',
+      title: 'Desafio 5.1: Estado Fundamental vs 1ª Inversão',
+      question: 'Sabendo que o acorde de Dó Maior no Estado Fundamental é C - E - G (Dó - Mi - Sol), qual é a ordem das notas na 1ª Inversão (C/E)?',
+      options: [
+        'G - C - E (Sol - Dó - Mi)',
+        'E - G - C (Mi - Sol - Dó, colocando a Terça no baixo)',
+        'C - G - E (Dó - Sol - Mi)',
+        'F - A - C (Fá - Lá - Dó)'
+      ],
+      correctIndex: 1,
+      tip: 'Na 1ª Inversão, jogamos a Tônica (Dó) para o agudo e a Terça (Mi) assume a posição mais grave: E - G - C (cifrado como C/E)!',
+      demoLabel: '🔊 Ouvir 1ª Inversão (E - G - C)',
+      demoNotes: [329.63, 392.00, 523.25]
+    },
+    {
+      id: 18,
+      weekId: 'semana5',
+      weekTitle: 'Semana 5 • Inversão de Acordes',
+      title: 'Desafio 5.2: A 2ª Inversão (Quinta no Baixo)',
+      question: 'Quando montamos o acorde de Dó Maior com a ordem G - C - E (Sol - Dó - Mi, com a Quinta na ponta esquerda), qual inversão estamos tocando?',
+      options: [
+        'Estado Fundamental (C)',
+        '1ª Inversão (C/E)',
+        '2ª Inversão (cifrada como C/G)',
+        '3ª Inversão'
+      ],
+      correctIndex: 2,
+      tip: 'Na 2ª Inversão, a Quinta do acorde (Sol) fica na nota mais grave (no baixo), formando Sol - Dó - Mi (C/G)!',
+      demoLabel: '🔊 Ouvir 2ª Inversão (G - C - E)',
+      demoNotes: [261.63, 329.63, 392.00]
+    },
+    {
+      id: 19,
+      weekId: 'semana5',
+      weekTitle: 'Semana 5 • Inversão de Acordes',
+      title: 'Desafio 5.3: Por que usar Inversões na Prática?',
+      question: 'Qual é a maior vantagem prática de usar inversões ao mudar de Dó Maior (C) para Fá Maior (F) no teclado?',
+      options: [
+        'Fazer a mão pular o mais longe possível pelo teclado',
+        'Economizar movimento (Condução de Vozes): você mantém a nota Dó presa no mesmo lugar e move os outros dois dedos apenas 1 tecla!',
+        'Deixar o som mais baixo',
+        'Evitar usar o polegar'
+      ],
+      correctIndex: 1,
+      tip: 'Tocando C fundamental (Dó-Mi-Sol) e depois F na 2ª inversão (Dó-Fá-Lá), sua mão praticamente não sai do lugar e a transição fica profissional!',
+      demoLabel: '🔊 Ouvir F na 2ª Inversão (C - F - A)',
+      demoNotes: [261.63, 349.23, 440.00]
+    },
+    {
+      id: 20,
+      weekId: 'semana5',
+      weekTitle: 'Semana 5 • Inversão de Acordes',
+      title: 'Desafio 5.4: Dedilhado na 1ª e 2ª Inversão',
+      question: 'Mesmo quando invertemos um acorde no teclado, as notas dele continuam sendo o mesmo acorde?',
+      options: [
+        'Sim! C (Dó-Mi-Sol), C/E (Mi-Sol-Dó) e C/G (Sol-Dó-Mi) são todos o mesmo acorde de Dó Maior, mudando apenas o encadeamento e o grave',
+        'Não, cada inversão vira outro tom completamente diferente',
+        'Apenas se você tocar com o pedal abaixado',
+        'Não, acordes invertidos só funcionam em músicas lentas'
+      ],
+      correctIndex: 0,
+      tip: 'Independentemente da ordem (C-E-G, E-G-C ou G-C-E), as três notas continuam sendo Dó, Mi e Sol — portanto continua sendo Dó Maior!',
+      demoLabel: '🔊 Ouvir Acorde Completo de C',
+      demoNotes: [261.63, 329.63, 392.00, 523.25]
+    }
+  ];
+
+  const filteredQuizQuestions = useMemo(() => {
+    if (selectedQuizWeek === 'todas') return QUIZ_QUESTIONS;
+    return QUIZ_QUESTIONS.filter(q => q.weekId === selectedQuizWeek);
+  }, [selectedQuizWeek]);
+
+  const handleSelectQuizWeek = (weekId: string) => {
+    setSelectedQuizWeek(weekId);
+    setCurrentQuizIndex(0);
+    setQuizAnswerFeedback(null);
+    setSelectedQuizOption(null);
+  };
+
   const handleAnswerQuiz = (selectedOptIdx: number) => {
-    const q = QUIZ_QUESTIONS[currentQuizIndex];
+    const q = filteredQuizQuestions[currentQuizIndex] || filteredQuizQuestions[0];
+    if (!q) return;
+    setSelectedQuizOption(selectedOptIdx);
     if (selectedOptIdx === q.correctIndex) {
       synth.playCelebration();
-      setQuizScore(prev => prev + 1);
+      if (!completedQuizIds.includes(q.id)) {
+        setQuizScore(prev => prev + 1);
+        setCompletedQuizIds(prev => [...prev, q.id]);
+      }
       setQuizAnswerFeedback('correto');
     } else {
       synth.playChord([261.63, 277.18], 0.6);
@@ -1813,19 +2190,26 @@ export default function App() {
             <div className="lg:col-span-4 flex flex-col items-center">
               <div className="w-full bg-[#f9f5eb] border-2 border-amber-200/90 rounded-2xl p-4 shadow-sm relative">
                 <div className="flex items-center gap-3 pb-3 border-b border-amber-200/70">
-                  <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-amber-300 shadow-xs shrink-0">
-                    <img
-                      src={mascotImg}
-                      onError={(e) => {
-                        const target = e.currentTarget;
-                        if (target.src !== '/assets/images/mascot_student_piano.jpg') {
-                          target.src = '/assets/images/mascot_student_piano.jpg';
-                        }
-                      }}
-                      alt="Aluna estudante de piano e harmonia"
-                      className="w-full h-full object-cover"
-                      loading="lazy"
-                    />
+                  <div className="relative w-14 h-14 rounded-xl border-2 border-amber-300 shadow-xs shrink-0 bg-amber-300 text-amber-950 flex items-center justify-center">
+                    <svg
+                      viewBox="0 0 64 64"
+                      className="w-10 h-10"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                      aria-label="Ícone de teclado musical"
+                    >
+                      {/* Corpo do teclado */}
+                      <rect x="6" y="14" width="52" height="36" rx="6" fill="#0f172a" stroke="#1e293b" strokeWidth="2" />
+                      {/* Teclas brancas */}
+                      <rect x="10" y="18" width="10" height="28" rx="2" fill="#ffffff" />
+                      <rect x="21" y="18" width="10" height="28" rx="2" fill="#ffffff" />
+                      <rect x="32" y="18" width="10" height="28" rx="2" fill="#ffffff" />
+                      <rect x="43" y="18" width="11" height="28" rx="2" fill="#ffffff" />
+                      {/* Teclas pretas */}
+                      <rect x="17" y="18" width="6" height="17" rx="1.5" fill="#0f172a" />
+                      <rect x="28" y="18" width="6" height="17" rx="1.5" fill="#0f172a" />
+                      <rect x="40" y="18" width="6" height="17" rx="1.5" fill="#0f172a" />
+                    </svg>
                   </div>
                   <div>
                     <h3 className="font-extrabold text-sm text-slate-900">Checklist do Aluno</h3>
@@ -2800,86 +3184,292 @@ export default function App() {
         )}
 
         {/* =================================================================
-            ABA 3: MISSÕES PRÁTICAS & QUIZ
+            ABA 3: MISSÕES PRÁTICAS & QUIZZES SEMANAIS
             ================================================================= */}
         {activeTab === 'desafios' && (
           <div className="space-y-5 animate-fadeIn">
-            <div className="bg-[#fefdfb] border-2 border-[#e8dfd1] rounded-3xl p-5 sm:p-7 shadow-md space-y-5 notebook-paper">
+            <div className="bg-[#fefdfb] border-2 border-[#e8dfd1] rounded-3xl p-4 sm:p-7 shadow-md space-y-6 notebook-paper">
               
+              {/* Cabeçalho e Placar Geral */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-4 border-b border-[#e8dfd1]">
                 <div>
                   <div className="inline-block bg-amber-300 text-amber-950 font-black text-xs px-2.5 py-0.5 rounded-md rotate-[-1deg] mb-1">
-                    ATIVIDADE DE FIXAÇÃO
+                    CRONOGRAMA DE QUIZZES SEMANAIS
                   </div>
-                  <h2 className="text-2xl font-black text-[#1e3a8a]">
-                    Missões de Aprendizagem & Desafios
+                  <h2 className="text-xl sm:text-2xl font-black text-[#1e3a8a]">
+                    Missões Práticas & Quizzes por Assunto
                   </h2>
                   <p className="text-xs text-slate-600 font-medium mt-0.5">
-                    Responda às perguntas práticas e ouça o resultado no teclado!
+                    Escolha a semana temática abaixo, responda aos desafios e ouça a demonstração no piano!
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 bg-amber-100 border border-amber-300 px-3.5 py-2 rounded-2xl text-amber-950 font-bold text-xs self-start sm:self-auto">
-                  <Award className="w-4 h-4 text-amber-600" />
-                  <span>Pontuação: {quizScore} acertos ⭐</span>
+                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                  <div className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 px-3.5 py-2 rounded-2xl text-amber-950 font-extrabold text-xs shadow-2xs">
+                    <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>Concluídos: {completedQuizIds.length} / {QUIZ_QUESTIONS.length} ⭐</span>
+                  </div>
+                  {completedQuizIds.length > 0 && (
+                    <button
+                      onClick={() => {
+                        setCompletedQuizIds([]);
+                        setQuizScore(0);
+                        setQuizAnswerFeedback(null);
+                        setSelectedQuizOption(null);
+                        setCurrentQuizIndex(0);
+                      }}
+                      className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] border border-slate-300 cursor-pointer transition-all"
+                      title="Reiniciar progresso dos quizzes"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Zerar</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {/* Pergunta Atual */}
-              {(() => {
-                const q = QUIZ_QUESTIONS[currentQuizIndex];
-                return (
-                  <div className="space-y-4 max-w-2xl mx-auto py-2">
-                    <div className="flex items-center justify-between text-xs font-bold text-slate-500">
-                      <span>{q.title}</span>
-                      <span>Desafio {currentQuizIndex + 1} de {QUIZ_QUESTIONS.length}</span>
-                    </div>
+              {/* Seletor de Semanas / Módulos de Estudo */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-extrabold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                    <Compass className="w-4 h-4 text-sky-600" />
+                    Selecione o Quiz Semanal por Assunto:
+                  </span>
+                  <span className="text-[11px] font-bold text-slate-500">
+                    5 Semanas • 20 Desafios
+                  </span>
+                </div>
 
-                    <h3 className="text-lg sm:text-xl font-black text-slate-900 leading-snug">
-                      {q.question}
-                    </h3>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+                  {WEEKLY_QUIZ_MODULES.map((mod) => {
+                    const isSelected = selectedQuizWeek === mod.id;
+                    const moduleQuestions = mod.id === 'todas'
+                      ? QUIZ_QUESTIONS
+                      : QUIZ_QUESTIONS.filter(q => q.weekId === mod.id);
+                    const doneInModule = moduleQuestions.filter(q => completedQuizIds.includes(q.id)).length;
+                    const isAllDone = doneInModule === moduleQuestions.length && moduleQuestions.length > 0;
 
-                    <div className="space-y-2.5 pt-2">
-                      {q.options.map((opt, optIdx) => (
-                        <button
-                          key={optIdx}
-                          onClick={() => handleAnswerQuiz(optIdx)}
-                          className="w-full p-3.5 rounded-2xl border-2 border-[#e2d8c7] bg-[#fcfaf5] hover:bg-amber-50 hover:border-amber-300 font-bold text-slate-800 text-xs sm:text-sm text-left transition-all flex items-center justify-between cursor-pointer"
-                        >
-                          <span>{opt}</span>
-                          <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center font-bold text-xs">
-                            {String.fromCharCode(65 + optIdx)}
+                    return (
+                      <button
+                        key={mod.id}
+                        onClick={() => handleSelectQuizWeek(mod.id)}
+                        className={`p-3 rounded-2xl border-2 text-left transition-all flex flex-col justify-between gap-1.5 cursor-pointer ${
+                          isSelected
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-md scale-[1.01]'
+                            : 'bg-[#fcfaf5] hover:bg-amber-50/70 text-slate-800 border-[#e2d8c7]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-1">
+                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border ${
+                            isSelected ? 'bg-amber-300 text-amber-950 border-amber-400' : mod.badgeColor
+                          }`}>
+                            {mod.weekLabel}
                           </span>
-                        </button>
-                      ))}
+                          <span className="text-sm">{isAllDone ? '✅' : mod.emoji}</span>
+                        </div>
+                        <div className={`font-extrabold text-xs leading-snug ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                          {mod.shortTitle}
+                        </div>
+                        <div className={`text-[10px] font-bold flex items-center justify-between pt-1 border-t ${
+                          isSelected ? 'border-slate-700 text-amber-300' : 'border-slate-200 text-slate-500'
+                        }`}>
+                          <span>{doneInModule}/{moduleQuestions.length} feitos</span>
+                          {isAllDone && <span className="text-emerald-400 font-black">100%</span>}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Faixa Descritiva do Módulo Selecionado */}
+              {(() => {
+                const activeModule = WEEKLY_QUIZ_MODULES.find(m => m.id === selectedQuizWeek) || WEEKLY_QUIZ_MODULES[0];
+                const safeIndex = currentQuizIndex < filteredQuizQuestions.length ? currentQuizIndex : 0;
+                const q = filteredQuizQuestions[safeIndex];
+                if (!q) return null;
+
+                const isCurrentCompleted = completedQuizIds.includes(q.id);
+
+                return (
+                  <div className="space-y-4 max-w-3xl mx-auto pt-1">
+                    {/* Banner do Assunto da Semana + Navegação Rápida por Questões */}
+                    <div className="p-3.5 rounded-2xl bg-[#f7f2e7] border-2 border-[#e2d8c7] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-base">{activeModule.emoji}</span>
+                          <span className="font-black text-xs sm:text-sm text-[#1e3a8a]">
+                            {q.weekTitle}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-600 font-medium">
+                          {activeModule.description}
+                        </p>
+                      </div>
+
+                      {/* Bolinhas Numeradas das Questões da Semana */}
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {filteredQuizQuestions.map((item, idx) => {
+                          const isCurrent = idx === safeIndex;
+                          const isDone = completedQuizIds.includes(item.id);
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => {
+                                setCurrentQuizIndex(idx);
+                                setQuizAnswerFeedback(null);
+                                setSelectedQuizOption(null);
+                              }}
+                              className={`w-7 h-7 rounded-xl font-black text-xs flex items-center justify-center transition-all cursor-pointer border ${
+                                isCurrent
+                                  ? 'bg-[#1e3a8a] text-white border-[#1e3a8a] scale-110 shadow-xs'
+                                  : isDone
+                                    ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                    : 'bg-white text-slate-700 border-slate-300 hover:bg-amber-100'
+                              }`}
+                              title={item.title}
+                            >
+                              {isDone ? '✓' : idx + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
 
-                    {quizAnswerFeedback && (
-                      <div className={`p-4 rounded-2xl border text-xs sm:text-sm font-bold flex items-center justify-between animate-fadeIn ${
-                        quizAnswerFeedback === 'correto'
-                          ? 'bg-emerald-100 text-emerald-950 border-emerald-300'
-                          : 'bg-rose-100 text-rose-950 border-rose-300'
-                      }`}>
-                        <div>
-                          {quizAnswerFeedback === 'correto'
-                            ? '🎉 Resposta Exata! Você dominou o conceito!'
-                            : '🤔 Quase lá! Lembre-se: ' + q.tip}
+                    {/* Cartão Principal da Pergunta */}
+                    <div className="p-4 sm:p-6 rounded-3xl bg-white border-2 border-[#e2d8c7] shadow-xs space-y-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-500">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-100 text-amber-950 font-black">
+                          {q.title}
+                          {isCurrentCompleted && <span className="text-emerald-700">• Concluído ✅</span>}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {q.demoNotes && (
+                            <button
+                              onClick={() => synth.playChord(q.demoNotes, 1.1)}
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-sky-950 border border-sky-300 font-extrabold text-xs transition-all cursor-pointer active:scale-95"
+                            >
+                              <Volume2 className="w-3.5 h-3.5 text-sky-700" />
+                              <span>{q.demoLabel || 'Ouvir no Teclado'}</span>
+                            </button>
+                          )}
+                          <span className="text-slate-500 font-extrabold">
+                            Questão {safeIndex + 1} de {filteredQuizQuestions.length}
+                          </span>
                         </div>
-                        <button
-                          onClick={() => {
-                            setQuizAnswerFeedback(null);
-                            setCurrentQuizIndex((prev) => (prev + 1) % QUIZ_QUESTIONS.length);
-                          }}
-                          className="px-3 py-1.5 bg-slate-900 text-white rounded-xl text-xs font-bold cursor-pointer"
-                        >
-                          Próximo Desafio →
-                        </button>
                       </div>
-                    )}
 
-                    <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-950 flex items-start gap-2">
-                      <HelpCircle className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
-                      <span><strong>Dica Didática:</strong> {q.tip}</span>
+                      <h3 className="text-base sm:text-xl font-black text-slate-900 leading-snug">
+                        {q.question}
+                      </h3>
+
+                      <div className="space-y-2.5 pt-1">
+                        {q.options.map((opt, optIdx) => {
+                          const isSelectedOpt = selectedQuizOption === optIdx;
+                          const isCorrectOpt = optIdx === q.correctIndex;
+                          let btnStyle = 'border-[#e2d8c7] bg-[#fcfaf5] hover:bg-amber-50 hover:border-amber-300 text-slate-800';
+                          if (quizAnswerFeedback && isSelectedOpt) {
+                            btnStyle = isCorrectOpt
+                              ? 'border-emerald-500 bg-emerald-50 text-emerald-950 ring-2 ring-emerald-200'
+                              : 'border-rose-400 bg-rose-50 text-rose-950';
+                          } else if (quizAnswerFeedback === 'correto' && isCorrectOpt) {
+                            btnStyle = 'border-emerald-500 bg-emerald-50 text-emerald-950';
+                          }
+
+                          return (
+                            <button
+                              key={optIdx}
+                              onClick={() => handleAnswerQuiz(optIdx)}
+                              className={`w-full p-3.5 rounded-2xl border-2 font-bold text-xs sm:text-sm text-left transition-all flex items-center justify-between gap-3 cursor-pointer ${btnStyle}`}
+                            >
+                              <span className="leading-relaxed">{opt}</span>
+                              <span className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center font-black text-xs ${
+                                quizAnswerFeedback && isSelectedOpt
+                                  ? isCorrectOpt
+                                    ? 'bg-emerald-600 text-white'
+                                    : 'bg-rose-600 text-white'
+                                  : 'bg-slate-200 text-slate-700'
+                              }`}>
+                                {quizAnswerFeedback && isSelectedOpt
+                                  ? (isCorrectOpt ? '✓' : '✕')
+                                  : String.fromCharCode(65 + optIdx)}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {quizAnswerFeedback && (
+                        <div className={`p-4 rounded-2xl border-2 text-xs sm:text-sm font-bold flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fadeIn ${
+                          quizAnswerFeedback === 'correto'
+                            ? 'bg-emerald-100 text-emerald-950 border-emerald-300'
+                            : 'bg-rose-100 text-rose-950 border-rose-300'
+                        }`}>
+                          <div className="space-y-1">
+                            <div className="font-black text-sm">
+                              {quizAnswerFeedback === 'correto'
+                                ? '🎉 Resposta Exata! Você dominou este assunto!'
+                                : '🤔 Quase lá! Veja a explicação prática:'}
+                            </div>
+                            <p className="text-xs font-semibold leading-relaxed opacity-95">
+                              {q.tip}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            {q.demoNotes && (
+                              <button
+                                onClick={() => synth.playChord(q.demoNotes, 1.1)}
+                                className="px-3 py-2 bg-white/90 hover:bg-white text-slate-900 border border-slate-300 rounded-xl text-xs font-extrabold cursor-pointer"
+                              >
+                                🔊 Ouvir Exemplo
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                setQuizAnswerFeedback(null);
+                                setSelectedQuizOption(null);
+                                setCurrentQuizIndex((prev) => (prev + 1) % filteredQuizQuestions.length);
+                              }}
+                              className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-extrabold cursor-pointer"
+                            >
+                              Próximo Desafio →
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Navegação Anterior / Próximo e Dica Didática */}
+                      <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-200/80">
+                        <div className="p-2.5 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-950 flex items-start gap-2 flex-1">
+                          <HelpCircle className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
+                          <span><strong>Resumo Teórico:</strong> {q.tip}</span>
+                        </div>
+
+                        <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                          <button
+                            onClick={() => {
+                              setQuizAnswerFeedback(null);
+                              setSelectedQuizOption(null);
+                              setCurrentQuizIndex((prev) => (prev - 1 + filteredQuizQuestions.length) % filteredQuizQuestions.length);
+                            }}
+                            className="px-3 py-2 rounded-xl border border-slate-300 bg-[#fcfaf5] hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer flex items-center gap-1"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Anterior</span>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setQuizAnswerFeedback(null);
+                              setSelectedQuizOption(null);
+                              setCurrentQuizIndex((prev) => (prev + 1) % filteredQuizQuestions.length);
+                            }}
+                            className="px-3 py-2 rounded-xl border border-slate-300 bg-[#fcfaf5] hover:bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer flex items-center gap-1"
+                          >
+                            <span>Pular</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
                     </div>
 
                   </div>
