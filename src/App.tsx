@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import mascotImg from './assets/images/mascot_student_piano_1794361003971.jpg';
 
 /* =====================================================================
    1. SINTETIZADOR DE PIANO COM WEB AUDIO API (Sons realistas com harmônicos)
@@ -1814,9 +1815,16 @@ export default function App() {
                 <div className="flex items-center gap-3 pb-3 border-b border-amber-200/70">
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-amber-300 shadow-xs shrink-0">
                     <img
-                      src="/src/assets/images/mascot_student_piano_1794361003971.jpg"
+                      src={mascotImg}
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (target.src !== '/assets/images/mascot_student_piano.jpg') {
+                          target.src = '/assets/images/mascot_student_piano.jpg';
+                        }
+                      }}
                       alt="Aluna estudante de piano e harmonia"
                       className="w-full h-full object-cover"
+                      loading="lazy"
                     />
                   </div>
                   <div>
