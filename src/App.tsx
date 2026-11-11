@@ -2,10 +2,12 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  * 
- * Harmonia - Caderno Didático & Visualizador de Acordes do Campo Harmônico
+ * Harmonia - Caderno Didático & Visualizador de Acordes do Campo Harmônico e Escalas
  * Interface didática interativa inspirada em fichas e cadernos de aprendizagem,
- * reunindo síntese de áudio realista, 12 tonalidades, graus em números naturais,
- * inversões, dedilhado recomendado, missões de fixação e exportação de fichas didáticas em PNG.
+ * reunindo síntese de áudio realista, 12 tonalidades, campo harmônico, escalas maiores
+ * e menores naturais, graus em números naturais, inversões, dedilhado recomendado,
+ * missões de fixação e exportação de fichas didáticas em PNG.
+ * Desenvolvido com carinho por Tio Wander.
  */
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -43,7 +45,9 @@ import {
   Compass,
   RotateCcw,
   Headphones,
-  Check
+  Check,
+  TrendingUp,
+  ArrowLeft
 } from 'lucide-react';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
@@ -147,7 +151,6 @@ class PianoSynth {
 
   public playChord(frequencies: number[], duration: number = 2.2) {
     frequencies.forEach((freq, idx) => {
-      // Arpejo milimétrico humanizado de piano
       const humanDelay = idx * 0.024;
       setTimeout(() => {
         this.playNote(freq, duration - humanDelay, 0.75 + Math.random() * 0.1);
@@ -168,7 +171,7 @@ class PianoSynth {
 const synth = new PianoSynth();
 
 /* =====================================================================
-   2. DADOS E MODELOS TEÓRICOS DE MÚSICA & HARMONIA
+   2. DADOS E MODELOS TEÓRICOS DE MÚSICA, CAMPO HARMÔNICO & ESCALAS
    ===================================================================== */
 export const CHROMATIC_NAMES_SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
 
@@ -202,7 +205,7 @@ export interface TonalityInfo {
 
 export const TONALITIES: TonalityInfo[] = [
   // 12 Tonalidades Maiores
-  { root: 'C', namePt: 'Dó Maior', accidentals: 'Natural (sem sustenidos ou bemóis)', type: 'major', rootChromaticIndex: 0 },
+  { root: 'C', namePt: 'Dó Maior', accidentals: 'Natural (sem alterações)', type: 'major', rootChromaticIndex: 0 },
   { root: 'G', namePt: 'Sol Maior', accidentals: '1 sustenido (F#)', type: 'major', rootChromaticIndex: 7 },
   { root: 'D', namePt: 'Ré Maior', accidentals: '2 sustenidos (F#, C#)', type: 'major', rootChromaticIndex: 2 },
   { root: 'A', namePt: 'Lá Maior', accidentals: '3 sustenidos (F#, C#, G#)', type: 'major', rootChromaticIndex: 9 },
@@ -494,6 +497,232 @@ export const MINOR_DEGREES: ScaleDegreePattern[] = [
   }
 ];
 
+/* =====================================================================
+   MODELO DAS ESCALAS MAIORES E MENORES NATURAIS
+   ===================================================================== */
+export interface ScaleNotePattern {
+  degreeNumber: number;
+  roman: string;
+  name: string;
+  intervalName: string;
+  semitoneOffset: number;
+  stepToNext: string;
+  isHalfStep: boolean;
+  functionName: string;
+  functionBadge: string;
+  rightFinger: number;
+  leftFinger: number;
+  isThumbCrossRight?: boolean;
+  isFingerCrossLeft?: boolean;
+  didacticTip: string;
+}
+
+export const MAJOR_SCALE_NOTES: ScaleNotePattern[] = [
+  {
+    degreeNumber: 1,
+    roman: '1º',
+    name: '1º Grau (Tônica)',
+    intervalName: 'Tônica (Fundamental)',
+    semitoneOffset: 0,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Tônica - Ponto de repouso absoluto e início da escala',
+    functionBadge: 'Tônica',
+    rightFinger: 1,
+    leftFinger: 5,
+    didacticTip: 'O polegar da mão direita inicia a escala com a mão leve e redonda.'
+  },
+  {
+    degreeNumber: 2,
+    roman: '2º',
+    name: '2º Grau (Sobretônica)',
+    intervalName: '2ª Maior (2 semitons)',
+    semitoneOffset: 2,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Sobretônica - Primeiro passo de movimento melódico',
+    functionBadge: 'Sobretônica',
+    rightFinger: 2,
+    leftFinger: 4,
+    didacticTip: 'Toque com o indicador suave e curvado.'
+  },
+  {
+    degreeNumber: 3,
+    roman: '3º',
+    name: '3º Grau (Mediante)',
+    intervalName: '3ª Maior (4 semitons)',
+    semitoneOffset: 4,
+    stepToNext: '½ Semitom (1 semitom)',
+    isHalfStep: true,
+    functionName: 'Mediante - Define a sonoridade brilhante e feliz da escala Maior',
+    functionBadge: 'Mediante',
+    rightFinger: 3,
+    leftFinger: 3,
+    didacticTip: '★ Atenção: aqui está o 1º SEMITOM da escala maior! As teclas ficam coladas sem tecla preta intermediária.'
+  },
+  {
+    degreeNumber: 4,
+    roman: '4º',
+    name: '4º Grau (Subdominante)',
+    intervalName: '4ª Justa (5 semitons)',
+    semitoneOffset: 5,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Subdominante - Afastamento e expansão da melodia',
+    functionBadge: 'Subdominante',
+    rightFinger: 1,
+    leftFinger: 2,
+    isThumbCrossRight: true,
+    didacticTip: '★ Passagem do Polegar na Mão Direita: passe o dedo 1 suavemente por baixo do dedo 3 sem levantar o pulso!'
+  },
+  {
+    degreeNumber: 5,
+    roman: '5º',
+    name: '5º Grau (Dominante)',
+    intervalName: '5ª Justa (7 semitons)',
+    semitoneOffset: 7,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Dominante - Centro de energia e sustentação melódica',
+    functionBadge: 'Dominante',
+    rightFinger: 2,
+    leftFinger: 1,
+    isFingerCrossLeft: true,
+    didacticTip: 'Na mão esquerda, aqui ocorre a passagem do dedo 3 por cima do polegar.'
+  },
+  {
+    degreeNumber: 6,
+    roman: '6º',
+    name: '6º Grau (Sobredominante)',
+    intervalName: '6ª Maior (9 semitons)',
+    semitoneOffset: 9,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Sobredominante - Conexão melódica com a relativa menor',
+    functionBadge: 'Sobredominante',
+    rightFinger: 3,
+    leftFinger: 3,
+    didacticTip: 'Conduz a linha melódica suavemente para a sensível.'
+  },
+  {
+    degreeNumber: 7,
+    roman: '7º',
+    name: '7º Grau (Sensível)',
+    intervalName: '7ª Maior (11 semitons)',
+    semitoneOffset: 11,
+    stepToNext: '½ Semitom (1 semitom)',
+    isHalfStep: true,
+    functionName: 'Sensível - Máxima atração melódica querendo repousar no 1º Grau!',
+    functionBadge: 'Sensível',
+    rightFinger: 4,
+    leftFinger: 2,
+    didacticTip: '★ 2º SEMITOM da escala maior! Fica a apenas meio tom da oitava (Grau 1). O ouvido clama pela resolução!'
+  }
+];
+
+export const MINOR_SCALE_NOTES: ScaleNotePattern[] = [
+  {
+    degreeNumber: 1,
+    roman: '1º',
+    name: '1º Grau (Tônica Menor)',
+    intervalName: 'Tônica (Fundamental)',
+    semitoneOffset: 0,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Tônica Menor - O centro reflexivo e melancólico do tom',
+    functionBadge: 'Tônica',
+    rightFinger: 1,
+    leftFinger: 5,
+    didacticTip: 'Início da escala com sonoridade intimista e expressiva.'
+  },
+  {
+    degreeNumber: 2,
+    roman: '2º',
+    name: '2º Grau (Sobretônica)',
+    intervalName: '2ª Maior (2 semitons)',
+    semitoneOffset: 2,
+    stepToNext: '½ Semitom (1 semitom)',
+    isHalfStep: true,
+    functionName: 'Sobretônica - Prepara o semitom imediato com a terça menor',
+    functionBadge: 'Sobretônica',
+    rightFinger: 2,
+    leftFinger: 4,
+    didacticTip: '★ Atenção: no tom menor, o 1º SEMITOM está logo entre o 2º e o 3º grau!'
+  },
+  {
+    degreeNumber: 3,
+    roman: '3º',
+    name: '3º Grau (Mediante / Terça Menor)',
+    intervalName: '3ª menor (3 semitons)',
+    semitoneOffset: 3,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Terça Menor - A nota mágica que faz o tom soar MENOR',
+    functionBadge: 'Terça Menor',
+    rightFinger: 3,
+    leftFinger: 3,
+    didacticTip: 'Compare com a escala maior: a terça desceu 1 semitom e mudou todo o clima!'
+  },
+  {
+    degreeNumber: 4,
+    roman: '4º',
+    name: '4º Grau (Subdominante)',
+    intervalName: '4ª Justa (5 semitons)',
+    semitoneOffset: 5,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Subdominante - Profundidade e nostalgia melódica',
+    functionBadge: 'Subdominante',
+    rightFinger: 1,
+    leftFinger: 2,
+    isThumbCrossRight: true,
+    didacticTip: '★ Passagem do Polegar na Mão Direita: o polegar entra no 4º grau.'
+  },
+  {
+    degreeNumber: 5,
+    roman: '5º',
+    name: '5º Grau (Dominante)',
+    intervalName: '5ª Justa (7 semitons)',
+    semitoneOffset: 7,
+    stepToNext: '½ Semitom (1 semitom)',
+    isHalfStep: true,
+    functionName: 'Dominante - Sustentação harmônica da tonalidade',
+    functionBadge: 'Dominante',
+    rightFinger: 2,
+    leftFinger: 1,
+    isFingerCrossLeft: true,
+    didacticTip: '★ 2º SEMITOM do tom menor natural: fica entre o 5º e o 6º grau!'
+  },
+  {
+    degreeNumber: 6,
+    roman: '6º',
+    name: '6º Grau (Sobredominante)',
+    intervalName: '6ª menor (8 semitons)',
+    semitoneOffset: 8,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Sexta Menor - Clima dramático e expressivo',
+    functionBadge: 'Sexta Menor',
+    rightFinger: 3,
+    leftFinger: 3,
+    didacticTip: 'A 6ª menor dá o toque heroico ou dramático muito usado em trilhas sonoras.'
+  },
+  {
+    degreeNumber: 7,
+    roman: '7º',
+    name: '7º Grau (Subtônica)',
+    intervalName: '7ª menor (10 semitons)',
+    semitoneOffset: 10,
+    stepToNext: '1 Tom (2 semitons)',
+    isHalfStep: false,
+    functionName: 'Subtônica - 1 tom inteiro abaixo da oitava',
+    functionBadge: 'Subtônica',
+    rightFinger: 4,
+    leftFinger: 2,
+    didacticTip: 'No tom menor natural é subtônica (a 1 tom da tônica).'
+  }
+];
+
 export interface ChordTypeDefinition {
   suffix: string;
   namePt: string;
@@ -606,6 +835,7 @@ export default function App() {
   const [selectedTonalityRoot, setSelectedTonalityRoot] = useState<string>('C');
   const [isTetradMode, setIsTetradMode] = useState<boolean>(false);
   const [selectedDegreeIndex, setSelectedDegreeIndex] = useState<number>(0);
+  const [selectedScaleDegreeIndex, setSelectedScaleDegreeIndex] = useState<number>(0);
   const [inversionIndex, setInversionIndex] = useState<number>(0);
   const [selectedHand, setSelectedHand] = useState<'right' | 'left'>('right');
 
@@ -626,12 +856,13 @@ export default function App() {
   const [volume, setVolume] = useState<number>(0.85);
   const [isMuted, setIsMuted] = useState<boolean>(false);
 
-  // Navegação do Caderno (Abas Didáticas)
-  const [activeTab, setActiveTab] = useState<'campo' | 'desafios' | 'cadencias' | 'dicionario' | 'guia'>('campo');
+  // Navegação do Caderno (Abas Didáticas na Navbar)
+  const [activeTab, setActiveTab] = useState<'campo' | 'escalas' | 'desafios' | 'cadencias' | 'dicionario' | 'guia'>('campo');
 
   // Checklist interativo de aprendizagem do aluno
   const [checklist, setChecklist] = useState({
     grau1: true,
+    escala: false,
     dominante: false,
     inversao: false,
     cadencia: false
@@ -660,6 +891,54 @@ export default function App() {
   }, [currentTonality]);
 
   const currentDegree = activeDegreeList[selectedDegreeIndex] || activeDegreeList[0];
+
+  // Notas e Graus da Escala Musical Selecionada
+  const activeScaleNoteList = useMemo(() => {
+    return currentTonality.type === 'major' ? MAJOR_SCALE_NOTES : MINOR_SCALE_NOTES;
+  }, [currentTonality]);
+
+  const currentScaleDegree = activeScaleNoteList[selectedScaleDegreeIndex] || activeScaleNoteList[0];
+
+  // Mapeamento das notas da escala no teclado
+  const scaleNotesMapping = useMemo(() => {
+    const rootChrom = currentTonality.rootChromaticIndex;
+    const lowestRootMidi = OCTAVE_START_MIDI + rootChrom;
+    let baseMidi = lowestRootMidi;
+
+    // Se a tônica for muito alta na 2ª oitava, ajusta para caber a escala
+    if (baseMidi + 12 > OCTAVE_START_MIDI + 24) {
+      baseMidi -= 12;
+    }
+
+    return activeScaleNoteList.map((item, idx) => {
+      const midi = baseMidi + item.semitoneOffset;
+      const keyIndex = midi - OCTAVE_START_MIDI;
+      const isRoot = idx === 0;
+      const finger = selectedHand === 'right' ? item.rightFinger : item.leftFinger;
+      const keyDef = KEYBOARD_KEYS.find(k => k.midi === midi);
+      const noteName = keyDef ? keyDef.noteName : `${CHROMATIC_NAMES_SHARP[midi % 12]}`;
+
+      return {
+        midi,
+        keyIndex,
+        isRoot,
+        degreeNumber: item.degreeNumber,
+        roman: item.roman,
+        name: item.name,
+        intervalName: item.intervalName,
+        stepToNext: item.stepToNext,
+        isHalfStep: item.isHalfStep,
+        functionName: item.functionName,
+        functionBadge: item.functionBadge,
+        didacticTip: item.didacticTip,
+        isThumbCrossRight: item.isThumbCrossRight,
+        isFingerCrossLeft: item.isFingerCrossLeft,
+        finger,
+        noteName,
+        isBlack: keyDef ? keyDef.isBlack : false
+      };
+    }).filter(item => item.keyIndex >= 0 && item.keyIndex < TOTAL_KEYS);
+  }, [activeScaleNoteList, currentTonality, selectedHand]);
 
   const currentChordData = useMemo(() => {
     if (customChordMode) {
@@ -731,7 +1010,7 @@ export default function App() {
     return shifted.sort((a, b) => a - b);
   }, [currentChordData.intervals, inversionIndex]);
 
-  // Dedilhado recomendado
+  // Dedilhado recomendado para acorde
   const fingerArray = useMemo(() => {
     const isTetrad = currentChordData.numNotes >= 4;
     const key = `${isTetrad ? 'tetrad' : 'triad'}_${inversionIndex % (isTetrad ? 4 : 3)}`;
@@ -739,7 +1018,7 @@ export default function App() {
     return selectedHand === 'right' ? rec.right : rec.left;
   }, [currentChordData.numNotes, inversionIndex, selectedHand]);
 
-  // Mapeamento das notas no teclado de 2 oitavas
+  // Mapeamento das notas do acorde no teclado
   const chordKeysMapping = useMemo(() => {
     const rootChrom = currentChordData.rootChromatic;
     const lowestNoteMidi = OCTAVE_START_MIDI + rootChrom;
@@ -776,8 +1055,11 @@ export default function App() {
   }, [invertedIntervals, currentChordData, fingerArray]);
 
   const activeKeyIndices = useMemo(() => {
+    if (activeTab === 'escalas') {
+      return new Set(scaleNotesMapping.map(k => k.keyIndex));
+    }
     return new Set(chordKeysMapping.map(k => k.keyIndex));
-  }, [chordKeysMapping]);
+  }, [activeTab, chordKeysMapping, scaleNotesMapping]);
 
   const activeMidiFrequencies = useMemo(() => {
     return chordKeysMapping.map(k => midiToFreq(k.midi));
@@ -788,7 +1070,6 @@ export default function App() {
     if (activeMidiFrequencies.length > 0) {
       synth.playChord(activeMidiFrequencies, 2.2);
     }
-    // Marcar no checklist
     if (currentDegree.degreeNumber === 1) {
       setChecklist(prev => ({ ...prev, grau1: true }));
     } else if (currentDegree.degreeNumber === 5) {
@@ -804,6 +1085,74 @@ export default function App() {
         setLastPressedKey(item.keyIndex);
         setTimeout(() => setLastPressedKey(null), 300);
       }, index * 260);
+    });
+  };
+
+  // Tocar Escala Ascendente
+  const handlePlayScaleAscending = () => {
+    if (isPlayingProgression) return;
+    setIsPlayingProgression(true);
+    setChecklist(prev => ({ ...prev, escala: true }));
+
+    const notesToPlay = [...scaleNotesMapping];
+    // Adiciona a oitava final se couber no teclado
+    const rootMidi = scaleNotesMapping[0]?.midi;
+    if (rootMidi && rootMidi + 12 <= OCTAVE_START_MIDI + 24) {
+      notesToPlay.push({
+        ...scaleNotesMapping[0],
+        midi: rootMidi + 12,
+        keyIndex: rootMidi + 12 - OCTAVE_START_MIDI,
+        intervalName: 'Oitava (Grau 1)',
+        finger: selectedHand === 'right' ? 5 : 1
+      });
+    }
+
+    notesToPlay.forEach((item, i) => {
+      setTimeout(() => {
+        synth.playNote(midiToFreq(item.midi), 1.2, 0.85);
+        setLastPressedKey(item.keyIndex);
+        setTimeout(() => setLastPressedKey(null), 300);
+
+        if (i === notesToPlay.length - 1) {
+          setTimeout(() => {
+            setIsPlayingProgression(false);
+          }, 800);
+        }
+      }, i * 360);
+    });
+  };
+
+  // Tocar Escala Descendente
+  const handlePlayScaleDescending = () => {
+    if (isPlayingProgression) return;
+    setIsPlayingProgression(true);
+
+    const notesToPlay = [...scaleNotesMapping];
+    const rootMidi = scaleNotesMapping[0]?.midi;
+    if (rootMidi && rootMidi + 12 <= OCTAVE_START_MIDI + 24) {
+      notesToPlay.push({
+        ...scaleNotesMapping[0],
+        midi: rootMidi + 12,
+        keyIndex: rootMidi + 12 - OCTAVE_START_MIDI,
+        intervalName: 'Oitava (Grau 1)',
+        finger: selectedHand === 'right' ? 5 : 1
+      });
+    }
+
+    notesToPlay.reverse();
+
+    notesToPlay.forEach((item, i) => {
+      setTimeout(() => {
+        synth.playNote(midiToFreq(item.midi), 1.2, 0.85);
+        setLastPressedKey(item.keyIndex);
+        setTimeout(() => setLastPressedKey(null), 300);
+
+        if (i === notesToPlay.length - 1) {
+          setTimeout(() => {
+            setIsPlayingProgression(false);
+          }, 800);
+        }
+      }, i * 360);
     });
   };
 
@@ -875,7 +1224,7 @@ export default function App() {
     return results.slice(0, 8);
   }, [searchQuery]);
 
-  // Exportar Ficha Didática em PNG
+  // Exportar Ficha Didática em PNG (Acorde ou Escala)
   const handleExportPNG = () => {
     if (!canvasRef.current) return;
     setIsExporting(true);
@@ -886,7 +1235,7 @@ export default function App() {
 
     const width = 1100;
     const height = 740;
-    const scale = 2; // Alta resolução para impressão
+    const scale = 2;
     canvas.width = width * scale;
     canvas.height = height * scale;
 
@@ -904,25 +1253,38 @@ export default function App() {
     // Faixa amarela de marca texto no topo
     ctx.fillStyle = '#fef08a';
     ctx.beginPath();
-    ctx.roundRect(50, 45, 340, 32, 6);
+    ctx.roundRect(50, 45, 380, 32, 6);
     ctx.fill();
 
     ctx.fillStyle = '#854d0e';
     ctx.font = 'bold 13px "Outfit", sans-serif';
-    ctx.fillText('FICHA DIDÁTICA DE HARMONIA & PIANO', 65, 66);
+    const sheetHeader = activeTab === 'escalas'
+      ? 'FICHA DIDÁTICA: ESCALA MUSICAL NO TECLADO'
+      : 'FICHA DIDÁTICA: HARMONIA & ACORDES';
+    ctx.fillText(sheetHeader, 65, 66);
 
-    // Título do Acorde
+    // Título Principal
     ctx.fillStyle = '#1e3a8a';
-    ctx.font = 'bold 46px "Outfit", sans-serif';
-    ctx.fillText(currentChordData.chordName, 50, 130);
+    ctx.font = 'bold 44px "Outfit", sans-serif';
+    const mainTitle = activeTab === 'escalas'
+      ? `Escala de ${currentTonality.namePt}`
+      : currentChordData.chordName;
+    ctx.fillText(mainTitle, 50, 130);
 
     ctx.fillStyle = '#475569';
-    ctx.font = '600 20px "Plus Jakarta Sans", sans-serif';
-    const ptFullName = `${CHROMATIC_PT[currentChordData.rootName] || currentChordData.rootName} ${currentChordData.degreeName}`;
-    ctx.fillText(ptFullName, 50, 160);
+    ctx.font = '600 18px "Plus Jakarta Sans", sans-serif';
+    const subTitle = activeTab === 'escalas'
+      ? `Fórmula: ${currentTonality.type === 'major' ? 'Tom - Tom - Semitom - Tom - Tom - Tom - Semitom' : 'Tom - Semitom - Tom - Tom - Semitom - Tom - Tom'}`
+      : `${CHROMATIC_PT[currentChordData.rootName] || currentChordData.rootName} ${currentChordData.degreeName}`;
+    ctx.fillText(subTitle, 50, 160);
 
-    // Pílulas de Informações Didáticas
-    const infoPills = [
+    // Pílulas de Informações
+    const infoPills = activeTab === 'escalas' ? [
+      `Tonalidade: ${currentTonality.namePt}`,
+      `Tipo: ${currentTonality.type === 'major' ? 'Escala Maior' : 'Escala Menor Natural'}`,
+      `Graus: 1º ao 7º Naturais`,
+      `Mão: ${selectedHand === 'right' ? 'Mão Direita (1-2-3-1-2-3-4-5)' : 'Mão Esquerda (5-4-3-2-1-3-2-1)'}`
+    ] : [
       `Tonalidade: ${currentTonality.namePt}`,
       currentChordData.degreeRoman === 'Avulso' ? 'Grau: Avulso' : `Grau: ${currentChordData.degreeRoman} Grau`,
       `Função: ${currentChordData.functionType.toUpperCase()}`,
@@ -947,30 +1309,32 @@ export default function App() {
       ctx.fillStyle = '#1e293b';
       ctx.fillText(pillText, pillX + 10, 204);
 
-      pillX += textWidth + 28;
+      pillX += textWidth + 26;
     });
 
-    // Notas do Acorde
+    // Notas no Teclado
     ctx.fillStyle = '#334155';
     ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText('NOTAS NO TECLADO:', 50, 252);
+    ctx.fillText(activeTab === 'escalas' ? 'NOTAS DA ESCALA:' : 'NOTAS DO ACORDE:', 50, 252);
 
     let noteBadgeX = 210;
-    chordKeysMapping.forEach((item) => {
+    const itemsToBadge = activeTab === 'escalas' ? scaleNotesMapping : chordKeysMapping;
+
+    itemsToBadge.forEach((item) => {
       const cleanNoteName = item.noteName.replace(/[0-9]/g, '');
-      const badgeText = `${cleanNoteName} (${item.intervalName})`;
+      const badgeText = `${cleanNoteName} (D${item.finger})`;
       ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
       const w = ctx.measureText(badgeText).width;
 
       ctx.fillStyle = item.isRoot ? '#fef08a' : '#bae6fd';
       ctx.beginPath();
-      ctx.roundRect(noteBadgeX, 235, w + 18, 26, 6);
+      ctx.roundRect(noteBadgeX, 235, w + 16, 26, 6);
       ctx.fill();
 
       ctx.fillStyle = item.isRoot ? '#854d0e' : '#0369a1';
-      ctx.fillText(badgeText, noteBadgeX + 9, 253);
+      ctx.fillText(badgeText, noteBadgeX + 8, 253);
 
-      noteBadgeX += w + 24;
+      noteBadgeX += w + 22;
     });
 
     // Teclado Realista
@@ -984,7 +1348,6 @@ export default function App() {
     ctx.roundRect(kbX - 6, kbY - 12, kbW + 12, kbH + 24, 8);
     ctx.fill();
 
-    // Faixa de feltro vermelho
     ctx.fillStyle = '#dc2626';
     ctx.fillRect(kbX, kbY - 4, kbW, 5);
 
@@ -1017,10 +1380,10 @@ export default function App() {
     // Desenhar teclas brancas
     KEYBOARD_KEYS.filter(k => !k.isBlack).forEach((keyDef) => {
       const pos = keyPositionsX[keyDef.keyIndex];
-      const isChordKey = activeKeyIndices.has(keyDef.keyIndex);
-      const chordKeyInfo = chordKeysMapping.find(k => k.keyIndex === keyDef.keyIndex);
+      const isTargetKey = activeKeyIndices.has(keyDef.keyIndex);
+      const targetItem = (activeTab === 'escalas' ? scaleNotesMapping : chordKeysMapping).find(k => k.keyIndex === keyDef.keyIndex);
 
-      ctx.fillStyle = isChordKey ? (chordKeyInfo?.isRoot ? '#fef08a' : '#bae6fd') : '#ffffff';
+      ctx.fillStyle = isTargetKey ? (targetItem?.isRoot ? '#fef08a' : '#bae6fd') : '#ffffff';
       ctx.strokeStyle = '#94a3b8';
       ctx.lineWidth = 1;
 
@@ -1029,7 +1392,7 @@ export default function App() {
       ctx.fill();
       ctx.stroke();
 
-      if (isChordKey && chordKeyInfo) {
+      if (isTargetKey && targetItem) {
         ctx.fillStyle = '#0284c7';
         ctx.beginPath();
         ctx.arc(pos.x + whiteKeyWidth / 2 - 0.5, kbY + whiteKeyHeight - 45, 14, 0, Math.PI * 2);
@@ -1038,7 +1401,7 @@ export default function App() {
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 12px "Outfit", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`D${chordKeyInfo.finger}`, pos.x + whiteKeyWidth / 2 - 0.5, kbY + whiteKeyHeight - 41);
+        ctx.fillText(`D${targetItem.finger}`, pos.x + whiteKeyWidth / 2 - 0.5, kbY + whiteKeyHeight - 41);
 
         ctx.fillStyle = '#0f172a';
         ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
@@ -1054,10 +1417,10 @@ export default function App() {
     KEYBOARD_KEYS.filter(k => k.isBlack).forEach((keyDef) => {
       const pos = keyPositionsX[keyDef.keyIndex];
       if (!pos) return;
-      const isChordKey = activeKeyIndices.has(keyDef.keyIndex);
-      const chordKeyInfo = chordKeysMapping.find(k => k.keyIndex === keyDef.keyIndex);
+      const isTargetKey = activeKeyIndices.has(keyDef.keyIndex);
+      const targetItem = (activeTab === 'escalas' ? scaleNotesMapping : chordKeysMapping).find(k => k.keyIndex === keyDef.keyIndex);
 
-      ctx.fillStyle = isChordKey ? (chordKeyInfo?.isRoot ? '#f59e0b' : '#0284c7') : '#18181b';
+      ctx.fillStyle = isTargetKey ? (targetItem?.isRoot ? '#f59e0b' : '#0284c7') : '#18181b';
       ctx.strokeStyle = '#09090b';
       ctx.lineWidth = 1;
 
@@ -1066,7 +1429,7 @@ export default function App() {
       ctx.fill();
       ctx.stroke();
 
-      if (isChordKey && chordKeyInfo) {
+      if (isTargetKey && targetItem) {
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(pos.x + blackKeyWidth / 2, kbY + blackKeyHeight - 24, 11, 0, Math.PI * 2);
@@ -1075,7 +1438,7 @@ export default function App() {
         ctx.fillStyle = '#0f172a';
         ctx.font = 'bold 11px "Outfit", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`D${chordKeyInfo.finger}`, pos.x + blackKeyWidth / 2, kbY + blackKeyHeight - 20);
+        ctx.fillText(`D${targetItem.finger}`, pos.x + blackKeyWidth / 2, kbY + blackKeyHeight - 20);
         ctx.textAlign = 'left';
       }
     });
@@ -1096,10 +1459,15 @@ export default function App() {
 
     ctx.fillStyle = '#713f12';
     ctx.font = '500 13px "Plus Jakarta Sans", sans-serif';
-    ctx.fillText(currentChordData.functionDesc, 70, postItY + 58);
-    ctx.fillText(`Prática: ${currentChordData.didacticTip}`, 70, postItY + 80);
+    if (activeTab === 'escalas') {
+      ctx.fillText(`Fórmula Mnemônica: ${currentTonality.type === 'major' ? 'Tom - Tom - Semitom - Tom - Tom - Tom - Semitom' : 'Tom - Semitom - Tom - Tom - Semitom - Tom - Tom'}`, 70, postItY + 58);
+      ctx.fillText('Dedilhado padrão: na mão direita, passe o polegar (1) suavemente por baixo do dedo 3 no 4º grau!', 70, postItY + 80);
+    } else {
+      ctx.fillText(currentChordData.functionDesc, 70, postItY + 58);
+      ctx.fillText(`Prática: ${currentChordData.didacticTip}`, 70, postItY + 80);
+    }
 
-    // Rodapé
+    // Rodapé com créditos
     ctx.fillStyle = '#64748b';
     ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
     ctx.fillText('Harmonia · Caderno Didático · Desenvolvido por Tio Wander 🎹', 50, 715);
@@ -1107,7 +1475,9 @@ export default function App() {
     setTimeout(() => {
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = `Ficha_${currentChordData.chordName}_Harmonia.png`;
+      link.download = activeTab === 'escalas'
+        ? `Ficha_Escala_${currentTonality.namePt.replace(/\s+/g, '_')}_Harmonia.png`
+        : `Ficha_${currentChordData.chordName}_Harmonia.png`;
       link.href = dataUrl;
       link.click();
       setIsExporting(false);
@@ -1119,10 +1489,10 @@ export default function App() {
     {
       id: 1,
       title: 'Desafio 1: Tônica & Centro',
-      question: 'Qual é o Grau 1 (Tônica) no campo harmônico de Dó Maior (C)?',
-      options: ['C (Dó Maior)', 'G (Sol Maior)', 'Am (Lá menor)', 'F (Fá Maior)'],
+      question: 'Qual é o Grau 1 (Tônica) no campo harmônico e na escala de Dó Maior (C)?',
+      options: ['C (Dó Maior / Dó)', 'G (Sol Maior / Sol)', 'Am (Lá menor)', 'F (Fá Maior)'],
       correctIndex: 0,
-      tip: 'A tônica é sempre o 1º grau que dá nome à tonalidade!'
+      tip: 'A tônica é sempre o 1º grau que dá nome à escala e à tonalidade!'
     },
     {
       id: 2,
@@ -1147,16 +1517,16 @@ export default function App() {
     },
     {
       id: 4,
-      title: 'Desafio 4: A Fórmula do Pop',
-      question: 'Qual é a progressão de graus mais famosa da história do Pop mundial?',
+      title: 'Desafio 4: A Fórmula da Escala Maior',
+      question: 'Qual é a sequência de tons e semitons da Escala Maior natural?',
       options: [
-        'Grau 1 - Grau 5 - Grau 6 - Grau 4',
-        'Grau 7 - Grau 3 - Grau 2 - Grau 1',
-        'Grau 2 - Grau 2 - Grau 2 - Grau 2',
-        'Grau 4 - Grau 4 - Grau 5 - Grau 5'
+        'Tom - Tom - Semitom - Tom - Tom - Tom - Semitom',
+        'Tom - Semitom - Tom - Tom - Semitom - Tom - Tom',
+        'Tom - Tom - Tom - Tom - Tom - Tom - Tom',
+        'Semitom - Tom - Semitom - Tom - Semitom - Tom - Semitom'
       ],
       correctIndex: 0,
-      tip: 'Usada em Let It Be, Someone Like You e centenas de sucessos!'
+      tip: 'Lembre-se: T - T - S - T - T - T - S! Os semitons ficam entre os graus 3-4 e 7-1.'
     }
   ];
 
@@ -1167,7 +1537,7 @@ export default function App() {
       setQuizScore(prev => prev + 1);
       setQuizAnswerFeedback('correto');
     } else {
-      synth.playChord([261.63, 277.18], 0.6); // tom dissonante didático
+      synth.playChord([261.63, 277.18], 0.6);
       setQuizAnswerFeedback('incorreto');
     }
   };
@@ -1176,11 +1546,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#f4efe6] text-slate-800 flex flex-col font-sans selection:bg-amber-200 selection:text-amber-950">
-      {/* Canvas escondido para renderização PNG em alta resolução */}
       <canvas ref={canvasRef} className="hidden" />
 
       {/* ===================================================================
-          BARRA DE NAVEGAÇÃO SUPERIOR DO CADERNO DIDÁTICO
+          BARRA DE NAVEGAÇÃO SUPERIOR DO CADERNO DIDÁTICO (Navbar com Escalas)
           =================================================================== */}
       <header className="sticky top-0 z-40 bg-[#fefcf8]/95 backdrop-blur-md border-b-2 border-[#e8dfd1] px-3 sm:px-6 py-2.5 flex items-center justify-between gap-3 shadow-xs">
         {/* Marca / Identidade */}
@@ -1198,22 +1567,35 @@ export default function App() {
           </div>
         </div>
 
-        {/* Abas Superiores Rápidas (Desktop / Tablet) */}
+        {/* Abas Superiores Rápidas (Desktop / Tablet) - Incluindo Escalas! */}
         <nav className="hidden md:flex items-center gap-1 bg-[#f3ede2] p-1 rounded-xl border border-[#ded5c6]">
           <button
             onClick={() => setActiveTab('campo')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'campo'
                 ? 'bg-[#1e3a8a] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-[#eae1d0]'
             }`}
           >
             <Music className="w-3.5 h-3.5" />
-            Teclado & Acordes
+            Campo Harmônico
           </button>
+
+          <button
+            onClick={() => setActiveTab('escalas')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'escalas'
+                ? 'bg-[#1e3a8a] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-[#eae1d0]'
+            }`}
+          >
+            <TrendingUp className="w-3.5 h-3.5" />
+            Escalas Maiores & Menores
+          </button>
+
           <button
             onClick={() => setActiveTab('desafios')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'desafios'
                 ? 'bg-amber-500 text-amber-950 shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-[#eae1d0]'
@@ -1222,9 +1604,10 @@ export default function App() {
             <Trophy className="w-3.5 h-3.5" />
             Missões Práticas
           </button>
+
           <button
             onClick={() => setActiveTab('cadencias')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'cadencias'
                 ? 'bg-[#1e3a8a] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-[#eae1d0]'
@@ -1233,9 +1616,10 @@ export default function App() {
             <ListMusic className="w-3.5 h-3.5" />
             Cadências Pop
           </button>
+
           <button
             onClick={() => setActiveTab('dicionario')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'dicionario'
                 ? 'bg-[#1e3a8a] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-[#eae1d0]'
@@ -1244,9 +1628,10 @@ export default function App() {
             <Search className="w-3.5 h-3.5" />
             Dicionário
           </button>
+
           <button
             onClick={() => setActiveTab('guia')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'guia'
                 ? 'bg-[#1e3a8a] text-white shadow-xs'
                 : 'text-slate-600 hover:text-slate-900 hover:bg-[#eae1d0]'
@@ -1267,7 +1652,7 @@ export default function App() {
                 setIsMuted(muted);
               }}
               title={isMuted ? 'Desmutar' : 'Mutar áudio'}
-              className="text-slate-600 hover:text-slate-900 transition-colors p-1"
+              className="text-slate-600 hover:text-slate-900 transition-colors p-1 cursor-pointer"
             >
               {isMuted ? <VolumeX className="w-4 h-4 text-rose-500" /> : <Volume2 className="w-4 h-4 text-sky-600" />}
             </button>
@@ -1361,12 +1746,8 @@ export default function App() {
           =================================================================== */}
       <main className="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-5 lg:p-7 space-y-5 pb-24 md:pb-12">
 
-        {/* =================================================================
-            HERO CARD DIDÁTICO (Inspirado diretamente na imagem de estudo)
-            ================================================================= */}
+        {/* HERO CARD DIDÁTICO */}
         <section className="bg-[#fefdfb] border-2 border-[#e8dfd1] rounded-3xl p-4 sm:p-6 lg:p-8 shadow-md relative overflow-hidden notebook-paper">
-          
-          {/* Efeito espiral do caderno no topo/lado */}
           <div className="absolute top-2 left-6 right-6 hidden sm:flex justify-between items-center opacity-40 pointer-events-none select-none">
             {Array.from({ length: 18 }).map((_, i) => (
               <div key={i} className="w-2.5 h-4 bg-slate-400 rounded-sm shadow-inner" />
@@ -1375,29 +1756,23 @@ export default function App() {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-center pt-2 sm:pt-4">
             
-            {/* Lado Esquerdo: Título Didático e Explicação Amigável */}
             <div className="lg:col-span-8 space-y-3.5">
-              
-              {/* Etiqueta de Marca-Texto Amarelo */}
               <div className="inline-block bg-amber-300 text-amber-950 font-black text-xs sm:text-sm px-3.5 py-1 rounded-md shadow-xs rotate-[-1.5deg] border border-amber-400">
                 CADERNO PRÁTICO DE MÚSICA & HARMONIA
               </div>
 
-              {/* Título Principal com Letras Grandes e Amigáveis */}
               <h1 className="text-3xl sm:text-5xl font-black text-[#1e3a8a] tracking-tight leading-tight">
-                CAMPO HARMÔNICO & PIANO
+                CAMPO HARMÔNICO & ESCALAS
               </h1>
 
-              {/* Pílula com o Lema Didático */}
               <div className="inline-flex items-center gap-2 bg-sky-100 border border-sky-300 text-sky-950 text-xs sm:text-sm font-bold px-3.5 py-1 rounded-full">
                 <span>Comprove o que você aprende tocando de verdade! 🎶</span>
               </div>
 
               <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium">
-                Descubra por que certas notas combinam perfeitamente. Toque os <strong className="text-sky-900 bg-sky-100 px-1 rounded">7 Graus Naturais</strong>, veja o dedilhado correto das mãos e domine os acordes que formam as músicas mais famosas do mundo.
+                Descubra por que certas notas combinam perfeitamente. Toque os <strong className="text-sky-900 bg-sky-100 px-1 rounded">7 Graus Naturais</strong>, pratique as <strong className="text-amber-900 bg-amber-100 px-1 rounded">Escalas Maiores e Menores</strong>, veja o dedilhado correto das mãos e domine os acordes das suas músicas favoritas.
               </p>
 
-              {/* Os 4 Quadrados Didáticos Coloridos da Ficha */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
                 <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 text-sky-950 space-y-1">
                   <div className="w-7 h-7 rounded-lg bg-sky-200 text-sky-800 flex items-center justify-center font-bold text-xs">
@@ -1411,8 +1786,8 @@ export default function App() {
                   <div className="w-7 h-7 rounded-lg bg-emerald-200 text-emerald-800 flex items-center justify-center font-bold text-xs">
                     02
                   </div>
-                  <h4 className="font-extrabold text-xs">3 Funções</h4>
-                  <p className="text-[11px] text-emerald-800 leading-tight">Tônica, Subdominante e Dominante.</p>
+                  <h4 className="font-extrabold text-xs">Escalas & Tons</h4>
+                  <p className="text-[11px] text-emerald-800 leading-tight">T-T-S-T-T-T-S sem mistério.</p>
                 </div>
 
                 <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-950 space-y-1">
@@ -1433,11 +1808,9 @@ export default function App() {
               </div>
             </div>
 
-            {/* Lado Direito: Ilustração da Aluna com Checklist Interativo */}
+            {/* Checklist do Aluno */}
             <div className="lg:col-span-4 flex flex-col items-center">
               <div className="w-full bg-[#f9f5eb] border-2 border-amber-200/90 rounded-2xl p-4 shadow-sm relative">
-                
-                {/* Imagem do Mascote / Aluna com bloco de notas */}
                 <div className="flex items-center gap-3 pb-3 border-b border-amber-200/70">
                   <div className="relative w-16 h-16 rounded-xl overflow-hidden border-2 border-amber-300 shadow-xs shrink-0">
                     <img
@@ -1449,12 +1822,11 @@ export default function App() {
                   <div>
                     <h3 className="font-extrabold text-sm text-slate-900">Checklist do Aluno</h3>
                     <p className="text-[11px] text-slate-600 font-medium">
-                      {completedChecklistCount} de 4 metas concluídas ⭐
+                      {completedChecklistCount} de 5 metas concluídas ⭐
                     </p>
                   </div>
                 </div>
 
-                {/* Lista Interativa com Checkboxes */}
                 <div className="space-y-2 pt-3 text-xs">
                   <label className="flex items-center gap-2 cursor-pointer text-slate-700 hover:text-slate-950 select-none">
                     <input
@@ -1465,6 +1837,18 @@ export default function App() {
                     />
                     <span className={checklist.grau1 ? 'line-through text-slate-400 font-medium' : 'font-semibold'}>
                       Tocar o Grau 1 da tonalidade
+                    </span>
+                  </label>
+
+                  <label className="flex items-center gap-2 cursor-pointer text-slate-700 hover:text-slate-950 select-none">
+                    <input
+                      type="checkbox"
+                      checked={checklist.escala}
+                      onChange={(e) => setChecklist(prev => ({ ...prev, escala: e.target.checked }))}
+                      className="w-4 h-4 rounded text-amber-600 accent-amber-500 cursor-pointer"
+                    />
+                    <span className={checklist.escala ? 'line-through text-slate-400 font-medium' : 'font-semibold'}>
+                      Tocar a Escala com o dedilhado correto
                     </span>
                   </label>
 
@@ -1505,11 +1889,10 @@ export default function App() {
                   </label>
                 </div>
 
-                {/* Barra de Progresso com Estrelas */}
                 <div className="mt-3 pt-2 border-t border-amber-200/60 flex items-center justify-between text-[11px] font-bold text-amber-800">
                   <span>Progresso do Caderno:</span>
                   <div className="flex gap-1 text-amber-500">
-                    {[1, 2, 3, 4].map(s => (
+                    {[1, 2, 3, 4, 5].map(s => (
                       <Star
                         key={s}
                         className={`w-3.5 h-3.5 ${s <= completedChecklistCount ? 'fill-amber-400 text-amber-500' : 'text-slate-300'}`}
@@ -1517,28 +1900,25 @@ export default function App() {
                     ))}
                   </div>
                 </div>
-
               </div>
             </div>
 
           </div>
 
-          {/* Post-it "Ideia Central" no Rodapé do Hero */}
           <div className="mt-5 pt-4 border-t-2 border-dashed border-[#e6decf]">
             <div className="bg-[#fef9c3] border border-amber-300 rounded-2xl p-3.5 sm:p-4 shadow-sm flex items-start sm:items-center gap-3 rotate-[-0.6deg]">
               <div className="w-8 h-8 rounded-full bg-amber-200 text-amber-800 flex items-center justify-center shrink-0">
                 <Lightbulb className="w-4 h-4" />
               </div>
               <div className="text-xs sm:text-sm text-amber-950 leading-relaxed">
-                <strong>Ideia Central:</strong> No tom Maior, os <strong>Graus 1, 4 e 5</strong> são sempre MAIORES e felizes. Os <strong>Graus 2, 3 e 6</strong> são MENORES e emotivos. O <strong>Grau 7</strong> é tenso e resolve de volta no <strong>Grau 1</strong>!
+                <strong>Ideia Central:</strong> As <strong>Escalas</strong> são a "escada" de notas ordenadas (1º ao 7º grau). Quando empilhamos essas notas de 3 em 3, nasce o <strong>Campo Harmônico</strong>! Dominar a escala é a chave mestra para tocar qualquer acorde com segurança.
               </div>
             </div>
           </div>
-
         </section>
 
         {/* =================================================================
-            ABAS DE CONTEÚDO (Visualizador, Desafios, Cadências, Dicionário, Guia)
+            ABA 1: CAMPO HARMÔNICO & TECLADO
             ================================================================= */}
         {activeTab === 'campo' && (
           <div className="space-y-5 animate-fadeIn">
@@ -1547,8 +1927,6 @@ export default function App() {
             <div className="bg-[#fefdfb] border-2 border-[#e8dfd1] rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
               
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                
-                {/* Tonalidade Atual */}
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-900 flex items-center justify-center font-bold text-sm">
                     🎼
@@ -1563,7 +1941,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Alternador Tríades vs Tétrades */}
                 <div className="flex items-center gap-2 self-start sm:self-auto">
                   <span className="text-xs font-bold text-slate-600">Complexidade:</span>
                   <div className="flex items-center bg-[#f3ede2] p-1 rounded-xl border border-[#ded5c6]">
@@ -1602,7 +1979,7 @@ export default function App() {
                 </button>
               </div>
 
-              {/* Grid Completo de Tonalidades */}
+              {/* Grid de Tonalidades */}
               <div className={`${isTonalityDrawerOpen ? 'block' : 'hidden'} sm:block space-y-3 pt-2`}>
                 <div>
                   <div className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
@@ -1655,7 +2032,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* SELETOR DOS 7 GRAUS NATURAIS (COM NÚMEROS NATURAIS EM DESTAQUE) */}
+              {/* SELETOR DOS 7 GRAUS NATURAIS */}
               <div className="pt-2 border-t border-[#e8dfd1]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-extrabold text-slate-800">
@@ -1674,7 +2051,6 @@ export default function App() {
                     const chordLabel = `${rootName}${suffix}`;
                     const isSelected = selectedDegreeIndex === idx && !customChordMode;
 
-                    // Cores pedagógicas suaves para as funções
                     const funcBadge = deg.function === 'tonica'
                       ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
                       : deg.function === 'subdominante'
@@ -1727,10 +2103,9 @@ export default function App() {
 
             </div>
 
-            {/* VISUALIZADOR REALISTA DE TECLADO DE PIANO COM DEDILHADO */}
+            {/* VISUALIZADOR REALISTA DE TECLADO DO ACORDE */}
             <div className="bg-[#fefdfb] border-2 border-[#e8dfd1] rounded-3xl p-4 sm:p-6 shadow-md space-y-4">
               
-              {/* Header do Acorde em Destaque */}
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-[#e8dfd1]">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2.5 flex-wrap">
@@ -1766,7 +2141,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Botões de Ação de Áudio */}
                 <div className="grid grid-cols-2 gap-2 shrink-0">
                   <button
                     onClick={handlePlayChord}
@@ -1786,7 +2160,7 @@ export default function App() {
                 </div>
               </div>
 
-              {/* Barra de Ajuste de Visualização (Enquadrado / Zoom / Rolagem) */}
+              {/* Barra de Ajuste de Visualização */}
               <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
                 <span className="font-bold text-slate-600">Visualização do Teclado:</span>
                 <div className="flex items-center gap-1 bg-[#f3ede2] p-1 rounded-xl border border-[#ded5c6]">
@@ -1828,7 +2202,6 @@ export default function App() {
                   }`}
                   style={{ height: '210px' }}
                 >
-                  {/* Feltro vermelho clássico no topo */}
                   <div className="w-full h-1.5 bg-red-600 mb-1 rounded-t-sm" />
 
                   {/* Teclas Brancas */}
@@ -1852,7 +2225,6 @@ export default function App() {
                         >
                           {isChordKey && chordKeyInfo && (
                             <div className="flex flex-col items-center gap-1 mb-1">
-                              {/* Círculo do Dedo Recomendado */}
                               <div className="w-6 h-6 rounded-full bg-[#1e3a8a] text-white font-black text-[11px] flex items-center justify-center shadow-xs">
                                 {chordKeyInfo.finger}
                               </div>
@@ -1915,8 +2287,6 @@ export default function App() {
 
               {/* CONTROLES DE INVERSÃO E MÃO RECOMENDADA */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-[#e8dfd1]">
-                
-                {/* Seletor de Inversão */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Inversão do Acorde:</span>
@@ -1944,7 +2314,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* Seletor de Mão (Direita / Esquerda) */}
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-slate-700">Mão do Teclado:</span>
@@ -1977,10 +2346,9 @@ export default function App() {
                     </button>
                   </div>
                 </div>
-
               </div>
 
-              {/* Post-it Didático do Acorde Selecionado */}
+              {/* Post-it Didático */}
               <div className="p-3.5 rounded-2xl bg-[#fef9c3] border border-amber-300 text-amber-950 text-xs space-y-1">
                 <div className="font-bold flex items-center gap-1.5">
                   <span>📌 Dica Didática para {currentChordData.chordName}:</span>
@@ -1999,7 +2367,432 @@ export default function App() {
         )}
 
         {/* =================================================================
-            ABA 2: MISSÕES PRÁTICAS & QUIZ (Comprovar Aprendizagem)
+            NOVA ABA: ESCALAS MAIORES E MENORES NATURAIS (NO MESMO PADRÃO)
+            ================================================================= */}
+        {activeTab === 'escalas' && (
+          <div className="space-y-5 animate-fadeIn">
+            
+            {/* PAINEL DE SELEÇÃO DA TONALIDADE DA ESCALA */}
+            <div className="bg-[#fefdfb] border-2 border-[#e8dfd1] rounded-2xl p-4 sm:p-5 shadow-xs space-y-4">
+              
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-950 flex items-center justify-center font-bold text-sm">
+                    🎼
+                  </div>
+                  <div>
+                    <h2 className="text-base sm:text-lg font-black text-slate-900">
+                      Escala de <span className="text-[#1e3a8a]">{currentTonality.namePt}</span>
+                    </h2>
+                    <p className="text-xs text-slate-500 font-medium">
+                      {currentTonality.type === 'major' ? 'Escala Maior Natural' : 'Escala Menor Natural'} · {currentTonality.accidentals}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Alternador de Mão para o Dedilhado da Escala */}
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <span className="text-xs font-bold text-slate-600">Dedilhado:</span>
+                  <div className="flex items-center bg-[#f3ede2] p-1 rounded-xl border border-[#ded5c6]">
+                    <button
+                      onClick={() => setSelectedHand('right')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                        selectedHand === 'right'
+                          ? 'bg-[#1e3a8a] text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-950'
+                      }`}
+                    >
+                      <Hand className="w-3.5 h-3.5" />
+                      Mão Direita (1-2-3-1-2-3-4-5)
+                    </button>
+                    <button
+                      onClick={() => setSelectedHand('left')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                        selectedHand === 'left'
+                          ? 'bg-[#1e3a8a] text-white shadow-xs'
+                          : 'text-slate-600 hover:text-slate-950'
+                      }`}
+                    >
+                      <Hand className="w-3.5 h-3.5 scale-x-[-1]" />
+                      Mão Esquerda (5-4-3-2-1-3-2-1)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Botão Gaveta de Tonalidades no Mobile */}
+              <div className="block sm:hidden">
+                <button
+                  onClick={() => setIsTonalityDrawerOpen(!isTonalityDrawerOpen)}
+                  className="w-full py-2 px-3 bg-[#f3ede2] hover:bg-[#eae1d0] text-slate-800 font-bold text-xs rounded-xl border border-[#ded5c6] flex items-center justify-between"
+                >
+                  <span>Trocar Tonalidade da Escala</span>
+                  {isTonalityDrawerOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Grid de Tonalidades das Escalas */}
+              <div className={`${isTonalityDrawerOpen ? 'block' : 'hidden'} sm:block space-y-3 pt-2`}>
+                <div>
+                  <div className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <span>☀️ 12 Escalas Maiores:</span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-12 gap-1.5">
+                    {TONALITIES.filter(t => t.type === 'major').map((ton) => (
+                      <button
+                        key={ton.root}
+                        onClick={() => {
+                          setSelectedTonalityRoot(ton.root);
+                          setSelectedScaleDegreeIndex(0);
+                          setIsTonalityDrawerOpen(false);
+                        }}
+                        className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all border ${
+                          selectedTonalityRoot === ton.root
+                            ? 'bg-amber-400 text-amber-950 border-amber-500 shadow-xs'
+                            : 'bg-[#fcfaf5] text-slate-700 border-[#e5dcce] hover:bg-[#f3ece0]'
+                        }`}
+                      >
+                        {ton.root}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-[11px] font-extrabold text-sky-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                    <span>🌙 12 Escalas Menores Naturais:</span>
+                  </div>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-12 gap-1.5">
+                    {TONALITIES.filter(t => t.type === 'minor').map((ton) => (
+                      <button
+                        key={ton.root}
+                        onClick={() => {
+                          setSelectedTonalityRoot(ton.root);
+                          setSelectedScaleDegreeIndex(0);
+                          setIsTonalityDrawerOpen(false);
+                        }}
+                        className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all border ${
+                          selectedTonalityRoot === ton.root
+                            ? 'bg-[#1e3a8a] text-white border-[#1e3a8a] shadow-xs'
+                            : 'bg-[#fcfaf5] text-slate-700 border-[#e5dcce] hover:bg-[#f3ece0]'
+                        }`}
+                      >
+                        {ton.root}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* FÓRMULA PASSO A PASSO (Tons e Semitons) */}
+              <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 text-amber-950 space-y-1.5">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span>Fórmula Intervalar da Escala {currentTonality.type === 'major' ? 'Maior' : 'Menor Natural'}:</span>
+                  <span className="font-mono bg-white px-2 py-0.5 rounded-md border border-amber-300">
+                    {currentTonality.type === 'major' ? 'T - T - S - T - T - T - S' : 'T - S - T - T - S - T - T'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1 overflow-x-auto text-xs font-mono font-bold no-scrollbar py-1">
+                  {scaleNotesMapping.map((item, idx) => (
+                    <React.Fragment key={idx}>
+                      <span className={`px-2 py-1 rounded-lg border shrink-0 ${
+                        item.isRoot
+                          ? 'bg-amber-300 text-amber-950 border-amber-400'
+                          : 'bg-white text-slate-800 border-slate-300'
+                      }`}>
+                        {item.noteName.replace(/[0-9]/g, '')}
+                      </span>
+                      {idx < scaleNotesMapping.length - 1 && (
+                        <div className="flex items-center gap-0.5 px-1 text-[11px] text-slate-500 shrink-0">
+                          <span>{item.isHalfStep ? '½ Semitom' : '1 Tom'}</span>
+                          <ArrowRight className="w-3 h-3 text-slate-400" />
+                        </div>
+                      )}
+                    </React.Fragment>
+                  ))}
+                  {/* Oitava final */}
+                  <div className="flex items-center gap-0.5 px-1 text-[11px] text-slate-500 shrink-0">
+                    <span>{scaleNotesMapping[scaleNotesMapping.length - 1]?.isHalfStep ? '½ Semitom' : '1 Tom'}</span>
+                    <ArrowRight className="w-3 h-3 text-slate-400" />
+                  </div>
+                  <span className="px-2 py-1 rounded-lg border shrink-0 bg-amber-300 text-amber-950 border-amber-400">
+                    {scaleNotesMapping[0]?.noteName.replace(/[0-9]/g, '')} (Oitava)
+                  </span>
+                </div>
+              </div>
+
+              {/* SELETOR DOS 7 GRAUS NATURAIS DA ESCALA (MESMO PADRÃO DO CAMPO HARMÔNICO) */}
+              <div className="pt-2 border-t border-[#e8dfd1]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-extrabold text-slate-800">
+                    As 7 Notas / Graus da Escala {currentTonality.namePt}:
+                  </span>
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    Toque em uma nota para ouvir e ver seu dedilhado
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
+                  {scaleNotesMapping.map((deg, idx) => {
+                    const isSelected = selectedScaleDegreeIndex === idx;
+
+                    return (
+                      <button
+                        key={deg.degreeNumber}
+                        onClick={() => {
+                          setSelectedScaleDegreeIndex(idx);
+                          synth.playNote(midiToFreq(deg.midi), 1.2, 0.85);
+                          setLastPressedKey(deg.keyIndex);
+                          setTimeout(() => setLastPressedKey(null), 300);
+                        }}
+                        className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between min-h-[82px] ${
+                          isSelected
+                            ? 'bg-[#1e3a8a] text-white border-[#1e3a8a] shadow-md scale-[1.02]'
+                            : 'bg-[#fefdfb] hover:bg-[#f6f0e4] border-[#e2d8c7] text-slate-800'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between w-full mb-1">
+                          <span className={`text-[11px] font-black ${isSelected ? 'text-amber-300' : 'text-slate-600'}`}>
+                            Grau {deg.degreeNumber}
+                          </span>
+                          <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-md border ${
+                            deg.isRoot
+                              ? 'bg-amber-100 text-amber-950 border-amber-300'
+                              : 'bg-sky-100 text-sky-950 border-sky-300'
+                          }`}>
+                            Dedo {deg.finger}
+                          </span>
+                        </div>
+
+                        <div className={`text-xl font-black tracking-tight ${isSelected ? 'text-white' : 'text-slate-900'}`}>
+                          {deg.noteName.replace(/[0-9]/g, '')}
+                        </div>
+
+                        <div className="flex items-center justify-between w-full mt-0.5 text-[10px]">
+                          <span className={isSelected ? 'text-sky-200' : 'text-slate-500'}>
+                            {CHROMATIC_PT[deg.noteName.replace(/[0-9]/g, '')] || ''}
+                          </span>
+                          {deg.isHalfStep && (
+                            <span className="text-[9px] font-bold text-amber-600 bg-amber-100 px-1 rounded">
+                              ½ Semitom
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+            {/* VISUALIZADOR REALISTA DO TECLADO PARA A ESCALA COMPLETA */}
+            <div className="bg-[#fefdfb] border-2 border-[#e8dfd1] rounded-3xl p-4 sm:p-6 shadow-md space-y-4">
+              
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pb-3 border-b border-[#e8dfd1]">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2.5 flex-wrap">
+                    <span className="text-3xl sm:text-4xl font-black text-[#1e3a8a] tracking-tight">
+                      Escala de {currentTonality.namePt}
+                    </span>
+                    <span className="text-sm font-bold text-slate-600">
+                      Grau {currentScaleDegree.degreeNumber} em destaque: {scaleNotesMapping[selectedScaleDegreeIndex]?.noteName.replace(/[0-9]/g, '')}
+                    </span>
+                    <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full border bg-amber-100 text-amber-950 border-amber-300">
+                      {currentScaleDegree.intervalName}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-xs text-slate-600 flex-wrap">
+                    <span>Dedilhado {selectedHand === 'right' ? 'Mão Direita (MD)' : 'Mão Esquerda (ME)'}: </span>
+                    <span className="font-mono font-bold text-slate-900 bg-[#f3ede2] px-2 py-0.5 rounded-md">
+                      {scaleNotesMapping.map(k => `D${k.finger}`).join(' - ')}
+                    </span>
+                    <span>·</span>
+                    <span className="text-amber-800 font-semibold">
+                      {selectedHand === 'right' ? '★ Passagem do Polegar no 4º grau' : '★ Passagem do Dedo 3 no 5º grau'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Botões de Execução Sonora da Escala */}
+                <div className="grid grid-cols-2 gap-2 shrink-0">
+                  <button
+                    onClick={handlePlayScaleAscending}
+                    disabled={isPlayingProgression}
+                    className="py-2.5 px-3.5 bg-[#1e3a8a] hover:bg-blue-900 active:scale-95 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-xs cursor-pointer min-h-[44px] disabled:opacity-50"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    <span>Tocar Escala Subindo</span>
+                  </button>
+
+                  <button
+                    onClick={handlePlayScaleDescending}
+                    disabled={isPlayingProgression}
+                    className="py-2.5 px-3 bg-[#f3ede2] hover:bg-[#eae1d0] active:scale-95 text-slate-800 font-bold rounded-xl text-xs flex items-center justify-center gap-1.5 border border-[#ded5c6] shadow-xs cursor-pointer min-h-[44px] disabled:opacity-50"
+                  >
+                    <RotateCcw className="w-4 h-4 text-amber-600" />
+                    <span>Tocar Descendo</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Barra de Ajuste de Visualização */}
+              <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
+                <span className="font-bold text-slate-600">Visualização do Teclado:</span>
+                <div className="flex items-center gap-1 bg-[#f3ede2] p-1 rounded-xl border border-[#ded5c6]">
+                  <button
+                    onClick={() => setKeyboardViewMode('fit')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                      keyboardViewMode === 'fit' ? 'bg-[#1e3a8a] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <Maximize2 className="w-3 h-3" />
+                    Enquadrar
+                  </button>
+                  <button
+                    onClick={() => setKeyboardViewMode('zoom')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                      keyboardViewMode === 'zoom' ? 'bg-[#1e3a8a] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <ZoomIn className="w-3 h-3" />
+                    Foco
+                  </button>
+                  <button
+                    onClick={() => setKeyboardViewMode('scroll')}
+                    className={`px-2.5 py-1 rounded-lg font-bold transition-all flex items-center gap-1 ${
+                      keyboardViewMode === 'scroll' ? 'bg-[#1e3a8a] text-white shadow-xs' : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    <MoveHorizontal className="w-3 h-3" />
+                    Rolar
+                  </button>
+                </div>
+              </div>
+
+              {/* TECLADO DE PIANO COM TODAS AS NOTAS DA ESCALA ILUMINADAS */}
+              <div className={`w-full overflow-x-auto pb-2 ${keyboardViewMode === 'fit' ? 'overflow-x-hidden' : ''}`}>
+                <div
+                  className={`relative select-none mx-auto bg-slate-900 p-2 sm:p-3 rounded-2xl shadow-xl ${
+                    keyboardViewMode === 'fit' ? 'w-full max-w-full' : keyboardViewMode === 'zoom' ? 'w-[780px]' : 'w-[880px]'
+                  }`}
+                  style={{ height: '210px' }}
+                >
+                  <div className="w-full h-1.5 bg-red-600 mb-1 rounded-t-sm" />
+
+                  {/* Teclas Brancas da Escala */}
+                  <div className="flex w-full h-[190px]">
+                    {KEYBOARD_KEYS.filter(k => !k.isBlack).map((keyDef) => {
+                      const scaleItem = scaleNotesMapping.find(k => k.keyIndex === keyDef.keyIndex);
+                      const isScaleKey = !!scaleItem;
+                      const isSelectedDegree = isScaleKey && scaleItem?.degreeNumber === (selectedScaleDegreeIndex + 1);
+                      const isPressed = lastPressedKey === keyDef.keyIndex;
+
+                      return (
+                        <button
+                          key={keyDef.midi}
+                          onClick={() => handleKeyClick(keyDef)}
+                          className={`piano-white-key flex-1 h-full rounded-b-md relative flex flex-col justify-end items-center pb-2 border-r border-slate-300 last:border-r-0 cursor-pointer ${
+                            isScaleKey
+                              ? scaleItem?.isRoot
+                                ? 'bg-amber-100 ring-2 ring-amber-400'
+                                : isSelectedDegree
+                                ? 'bg-sky-200 ring-2 ring-sky-500 scale-[1.01]'
+                                : 'bg-sky-100 ring-1 ring-sky-300'
+                              : ''
+                          } ${isPressed ? 'is-pressed' : ''}`}
+                        >
+                          {isScaleKey && scaleItem && (
+                            <div className="flex flex-col items-center gap-1 mb-1">
+                              <div className={`w-6 h-6 rounded-full font-black text-[11px] flex items-center justify-center shadow-xs ${
+                                scaleItem.isRoot ? 'bg-amber-500 text-amber-950' : 'bg-[#1e3a8a] text-white'
+                              }`}>
+                                {scaleItem.finger}
+                              </div>
+                              <span className="text-[10px] font-black text-slate-800">
+                                {keyDef.noteName.replace(/[0-9]/g, '')}
+                              </span>
+                            </div>
+                          )}
+                          {!isScaleKey && (
+                            <span className="text-[9px] font-bold text-slate-400">
+                              {keyDef.noteName.replace(/[0-9]/g, '')}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Teclas Pretas da Escala */}
+                  <div className="absolute top-[16px] left-[8px] right-[8px] h-[115px] pointer-events-none flex">
+                    {KEYBOARD_KEYS.filter(k => !k.isBlack).map((whiteKey, idx) => {
+                      const blackKeyDef = KEYBOARD_KEYS.find(k => k.isBlack && k.keyIndex === whiteKey.keyIndex + 1);
+                      if (!blackKeyDef) {
+                        return <div key={`spacer-scale-${idx}`} className="flex-1" />;
+                      }
+
+                      const scaleItem = scaleNotesMapping.find(k => k.keyIndex === blackKeyDef.keyIndex);
+                      const isScaleKey = !!scaleItem;
+                      const isSelectedDegree = isScaleKey && scaleItem?.degreeNumber === (selectedScaleDegreeIndex + 1);
+                      const isPressed = lastPressedKey === blackKeyDef.keyIndex;
+
+                      return (
+                        <div key={`scale-container-${blackKeyDef.midi}`} className="flex-1 relative">
+                          <button
+                            onClick={() => handleKeyClick(blackKeyDef)}
+                            className={`piano-black-key absolute right-[-24%] top-0 w-[48%] h-full rounded-b-md z-10 pointer-events-auto flex flex-col justify-end items-center pb-1.5 cursor-pointer ${
+                              isScaleKey
+                                ? scaleItem?.isRoot
+                                  ? 'bg-amber-500 ring-2 ring-amber-300'
+                                  : isSelectedDegree
+                                  ? 'bg-sky-500 ring-2 ring-white scale-[1.03]'
+                                  : 'bg-sky-600 ring-1 ring-sky-300'
+                                : ''
+                            } ${isPressed ? 'is-pressed' : ''}`}
+                          >
+                            {isScaleKey && scaleItem && (
+                              <div className="flex flex-col items-center gap-0.5 mb-1">
+                                <div className="w-5 h-5 rounded-full bg-white text-slate-900 font-black text-[10px] flex items-center justify-center shadow-xs">
+                                  {scaleItem.finger}
+                                </div>
+                                <span className="text-[9px] font-extrabold text-white">
+                                  {blackKeyDef.noteName.replace(/[0-9]/g, '')}
+                                </span>
+                              </div>
+                            )}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* Dica da Passagem de Dedos da Escala */}
+              <div className="p-3.5 rounded-2xl bg-[#fef9c3] border border-amber-300 text-amber-950 text-xs space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <Lightbulb className="w-4 h-4 text-amber-700" />
+                  <span>Dica de Ouro de Dedilhado na Escala de {currentTonality.namePt}:</span>
+                </div>
+                <p className="leading-relaxed">
+                  {selectedHand === 'right'
+                    ? 'Na Mão Direita, suba tocando os dedos 1 - 2 - 3. Ao chegar na 4ª nota, passe o polegar (1) suavemente por baixo da mão para continuar com 1 - 2 - 3 - 4 - 5!'
+                    : 'Na Mão Esquerda, inicie com o dedo mínimo 5 - 4 - 3 - 2 - 1. Quando o polegar tocar no 5º grau, passe o dedo 3 por cima para finalizar em 3 - 2 - 1!'}
+                </p>
+                <p className="font-semibold text-amber-900">
+                  {currentScaleDegree.name}: {currentScaleDegree.didacticTip}
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        )}
+
+        {/* =================================================================
+            ABA 3: MISSÕES PRÁTICAS & QUIZ
             ================================================================= */}
         {activeTab === 'desafios' && (
           <div className="space-y-5 animate-fadeIn">
@@ -2038,7 +2831,6 @@ export default function App() {
                       {q.question}
                     </h3>
 
-                    {/* Opções de Resposta */}
                     <div className="space-y-2.5 pt-2">
                       {q.options.map((opt, optIdx) => (
                         <button
@@ -2054,7 +2846,6 @@ export default function App() {
                       ))}
                     </div>
 
-                    {/* Feedback da Resposta */}
                     {quizAnswerFeedback && (
                       <div className={`p-4 rounded-2xl border text-xs sm:text-sm font-bold flex items-center justify-between animate-fadeIn ${
                         quizAnswerFeedback === 'correto'
@@ -2078,7 +2869,6 @@ export default function App() {
                       </div>
                     )}
 
-                    {/* Dica do Professor */}
                     <div className="p-3 bg-sky-50 border border-sky-200 rounded-xl text-xs text-sky-950 flex items-start gap-2">
                       <HelpCircle className="w-4 h-4 text-sky-600 shrink-0 mt-0.5" />
                       <span><strong>Dica Didática:</strong> {q.tip}</span>
@@ -2093,7 +2883,7 @@ export default function App() {
         )}
 
         {/* =================================================================
-            ABA 3: LABORATÓRIO DE CADÊNCIAS POPULARES
+            ABA 4: LABORATÓRIO DE CADÊNCIAS POPULARES
             ================================================================= */}
         {activeTab === 'cadencias' && (
           <div className="space-y-5 animate-fadeIn">
@@ -2137,7 +2927,6 @@ export default function App() {
                           {cad.description}
                         </p>
 
-                        {/* Sequência de Graus e Cifras com Números Naturais */}
                         <div className="flex items-center gap-2 mt-3 font-mono text-xs overflow-x-auto no-scrollbar pb-1">
                           {cadenceChords.map((ch, i) => {
                             const degNum = activeDegreeList[cad.degrees[i]]?.degreeNumber || (cad.degrees[i] + 1);
@@ -2178,7 +2967,7 @@ export default function App() {
         )}
 
         {/* =================================================================
-            ABA 4: BUSCA LIVRE & DICIONÁRIO DE CIFRAS
+            ABA 5: BUSCA LIVRE & DICIONÁRIO DE CIFRAS
             ================================================================= */}
         {activeTab === 'dicionario' && (
           <div className="space-y-5 animate-fadeIn">
@@ -2196,7 +2985,6 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Input de Busca */}
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
@@ -2208,7 +2996,6 @@ export default function App() {
                 />
               </div>
 
-              {/* Atalhos Rápidos */}
               <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
                 <span className="font-bold text-slate-500">Exemplos:</span>
                 {['C', 'G7', 'Am7', 'Dm7', 'F7M', 'E7', 'Bø'].map((chip) => (
@@ -2222,7 +3009,6 @@ export default function App() {
                 ))}
               </div>
 
-              {/* Resultados */}
               {searchQuery.trim().length > 0 && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2">
                   {filteredChords.map((item, idx) => (
@@ -2253,7 +3039,7 @@ export default function App() {
         )}
 
         {/* =================================================================
-            ABA 5: APOSTILA & DICAS RÁPIDAS
+            ABA 6: APOSTILA & DICAS RÁPIDAS
             ================================================================= */}
         {activeTab === 'guia' && (
           <div className="space-y-5 animate-fadeIn">
@@ -2271,14 +3057,14 @@ export default function App() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-[#e2d8c7] space-y-2">
                   <div className="w-8 h-8 rounded-xl bg-emerald-200 text-emerald-950 flex items-center justify-center font-black text-xs">
                     01
                   </div>
-                  <h3 className="font-black text-sm text-slate-900">O que é Campo Harmônico?</h3>
+                  <h3 className="font-black text-sm text-slate-900">O que é Escala Musical?</h3>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    É a família de acordes gerada a partir das 7 notas da escala. Tocar músicas dentro do mesmo tom garante que todos os acordes combinem perfeitamente.
+                    A escala é uma escada de 7 notas que define a tonalidade da música. A escala Maior segue a fórmula <strong>T - T - S - T - T - T - S</strong>, e a Menor segue <strong>T - S - T - T - S - T - T</strong>.
                   </p>
                 </div>
 
@@ -2286,11 +3072,9 @@ export default function App() {
                   <div className="w-8 h-8 rounded-xl bg-sky-200 text-sky-950 flex items-center justify-center font-black text-xs">
                     02
                   </div>
-                  <h3 className="font-black text-sm text-slate-900">As 3 Emoções Musicais</h3>
+                  <h3 className="font-black text-sm text-slate-900">Como Nasce o Campo Harmônico?</h3>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    🟢 <strong>Tônica (Graus 1, 6 e 3):</strong> Repouso e paz.<br />
-                    🔵 <strong>Subdominante (Graus 4 e 2):</strong> Viagem e balanço.<br />
-                    🔴 <strong>Dominante (Graus 5 e 7):</strong> Tensão que pede resolução!
+                    Sobre cada uma das 7 notas da escala, empilhamos terças para formar os 7 acordes do Campo Harmônico. Por isso, a escala e os acordes estão 100% conectados!
                   </p>
                 </div>
 
@@ -2298,14 +3082,116 @@ export default function App() {
                   <div className="w-8 h-8 rounded-xl bg-purple-200 text-purple-950 flex items-center justify-center font-black text-xs">
                     03
                   </div>
-                  <h3 className="font-black text-sm text-slate-900">Por que Inverter os Acordes?</h3>
+                  <h3 className="font-black text-sm text-slate-900">A Passagem do Polegar</h3>
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Inverter permite trocar de um acorde para outro movimentando apenas um ou dois dedos, mantendo a mão relaxada e sem saltos pelo teclado.
+                    Como temos 5 dedos e a escala tem 7 notas, usamos a técnica da passagem do polegar por baixo do dedo médio para tocar a escala inteira com fluidez!
                   </p>
+                </div>
+
+                {/* TÓPICO 04: O Segredo do 7º Grau (Substituição pelo 5º na 1ª Inversão) */}
+                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-amber-300 shadow-xs space-y-2 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <div className="w-8 h-8 rounded-xl bg-amber-300 text-amber-950 flex items-center justify-center font-black text-xs">
+                      04
+                    </div>
+                    <span className="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
+                      ★ Dica de Ouro
+                    </span>
+                  </div>
+
+                  <h3 className="font-black text-sm text-slate-900">
+                    O 7º Grau pode virar o 5º Grau na 1ª Inversão!
+                  </h3>
+
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    No tom de Dó Maior, o 7º grau é o acorde diminuto <strong>B°</strong> (Si diminuto) ou <strong>Bm7(b5)</strong>. Por soar muito tenso para o ouvido e ser difícil de aplicar no teclado, os músicos usam um <strong>grande segredo harmônico</strong>:
+                  </p>
+
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+                    <p className="font-bold">
+                      💡 Substitua o 7º grau (B°) pelo 5º grau com baixo na terça (G/B)!
+                    </p>
+                    <p className="text-[11px] text-amber-900 leading-snug">
+                      O acorde <strong>G/B</strong> contém as notas <strong>Si, Ré e Sol</strong>. Ele mantém a nota Si no baixo caminhando para o Dó (C), conserva a função dominante que prepara a tônica, mas com um som <strong>muito mais doce, rico e fácil de tocar</strong>!
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      onClick={() => synth.playChord([246.94, 293.66, 349.23], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                      title="Ouvir acorde diminuto B°"
+                    >
+                      🔊 Ouvir 7º Grau (B°)
+                    </button>
+                    <button
+                      onClick={() => synth.playChord([246.94, 293.66, 392.00], 1.8)}
+                      className="flex-1 py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-amber-950 text-[11px] font-black rounded-lg transition-colors cursor-pointer shadow-xs"
+                      title="Ouvir acorde G/B (5º grau na 1ª inversão)"
+                    >
+                      ✨ Ouvir G/B (5º na 1ª Inv.)
+                    </button>
+                  </div>
+                </div>
+
+                {/* TÓPICO 05: Como Montar Acordes Maiores e Menores (Regra do 4 e 3) */}
+                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-sky-300 shadow-xs space-y-2 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <div className="w-8 h-8 rounded-xl bg-sky-200 text-sky-950 flex items-center justify-center font-black text-xs">
+                      05
+                    </div>
+                    <span className="text-[10px] font-black text-sky-900 bg-sky-100 px-2 py-0.5 rounded-full border border-sky-200">
+                      ★ Passo a Passo
+                    </span>
+                  </div>
+
+                  <h3 className="font-black text-sm text-slate-900">
+                    Como Montar Acordes Maiores e Menores (Regra 4 e 3)
+                  </h3>
+
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Você não precisa decorar centenas de cifras! Basta contar as teclas (semitons) a partir da tônica:
+                  </p>
+
+                  <div className="space-y-1.5 text-xs">
+                    <div className="p-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-950 space-y-0.5">
+                      <span className="font-extrabold text-[11px] text-emerald-900">☀️ Acorde Maior (Regra 4 + 3):</span>
+                      <p className="text-[11px] leading-snug">
+                        Escolha a nota raiz (ex: Dó) ➔ Pule <strong>4 semitons</strong> para a 3ª Maior (Mi) ➔ Pule mais <strong>3 semitons</strong> para a 5ª Justa (Sol). Som aberto e feliz!
+                      </p>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-sky-50 border border-sky-200 text-sky-950 space-y-0.5">
+                      <span className="font-extrabold text-[11px] text-sky-900">🌙 Acorde Menor (Regra 3 + 4):</span>
+                      <p className="text-[11px] leading-snug">
+                        É a ordem inversa: Nota raiz (Dó) ➔ Pule <strong>3 semitons</strong> para a 3ª menor (Mib) ➔ Pule mais <strong>4 semitons</strong> para a 5ª Justa (Sol). Som reflexivo e emotivo!
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-950 font-bold leading-snug">
+                    💡 <strong>O Truque Mágico:</strong> Para transformar QUALQUER acorde Maior em Menor, basta <strong>descer a nota do meio (a terça) em 1 tecla para a esquerda (1 semitom)</strong>!
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      onClick={() => synth.playChord([261.63, 329.63, 392.00], 1.8)}
+                      className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow-xs"
+                      title="Ouvir Dó Maior (C)"
+                    >
+                      ☀️ Ouvir Dó Maior (C)
+                    </button>
+                    <button
+                      onClick={() => synth.playChord([261.63, 311.13, 392.00], 1.8)}
+                      className="flex-1 py-1.5 px-2 bg-[#1e3a8a] hover:bg-blue-900 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow-xs"
+                      title="Ouvir Dó Menor (Cm)"
+                    >
+                      🌙 Ouvir Dó Menor (Cm)
+                    </button>
+                  </div>
                 </div>
               </div>
 
-              {/* Cartão de Instalação PWA */}
               <div className="p-4 rounded-2xl bg-amber-100/70 border border-amber-300 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <div className="space-y-1">
                   <h3 className="font-extrabold text-sm text-amber-950 flex items-center gap-1.5">
@@ -2343,64 +3229,74 @@ export default function App() {
             <span>🎹</span>
           </p>
           <p className="text-[11px] text-slate-500 font-medium">
-            Harmonia · Caderno Didático Interativo de Música & Teclado
+            Harmonia · Caderno Didático Interativo de Música, Campo Harmônico & Escalas
           </p>
         </div>
 
       </main>
 
       {/* ===================================================================
-          BARRA DE NAVEGAÇÃO INFERIOR PARA MOBILE (Ergonomia de toque)
+          BARRA DE NAVEGAÇÃO INFERIOR PARA MOBILE (Com Escalas!)
           =================================================================== */}
-      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-[#fefcf8]/95 backdrop-blur-md border-t-2 border-[#e8dfd1] px-2 py-2 flex items-center justify-around md:hidden pb-safe">
+      <footer className="fixed bottom-0 left-0 right-0 z-40 bg-[#fefcf8]/95 backdrop-blur-md border-t-2 border-[#e8dfd1] px-1.5 py-2 flex items-center justify-around md:hidden pb-safe">
         <button
           onClick={() => setActiveTab('campo')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'campo' ? 'text-[#1e3a8a] font-extrabold' : 'text-slate-500 font-semibold'
           }`}
         >
-          <Music className="w-5 h-5" />
-          <span className="text-[10px]">Teclado</span>
+          <Music className="w-4 h-4" />
+          <span className="text-[9px]">Harmonia</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('escalas')}
+          className={`flex flex-col items-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'escalas' ? 'text-[#1e3a8a] font-extrabold' : 'text-slate-500 font-semibold'
+          }`}
+        >
+          <TrendingUp className="w-4 h-4" />
+          <span className="text-[9px]">Escalas</span>
         </button>
 
         <button
           onClick={() => setActiveTab('desafios')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'desafios' ? 'text-amber-600 font-extrabold' : 'text-slate-500 font-semibold'
           }`}
         >
-          <Trophy className="w-5 h-5" />
-          <span className="text-[10px]">Missões</span>
+          <Trophy className="w-4 h-4" />
+          <span className="text-[9px]">Missões</span>
         </button>
 
         <button
           onClick={() => setActiveTab('cadencias')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'cadencias' ? 'text-[#1e3a8a] font-extrabold' : 'text-slate-500 font-semibold'
           }`}
         >
-          <ListMusic className="w-5 h-5" />
-          <span className="text-[10px]">Cadências</span>
+          <ListMusic className="w-4 h-4" />
+          <span className="text-[9px]">Cadências</span>
         </button>
 
         <button
           onClick={() => setActiveTab('dicionario')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'dicionario' ? 'text-[#1e3a8a] font-extrabold' : 'text-slate-500 font-semibold'
           }`}
         >
-          <Search className="w-5 h-5" />
-          <span className="text-[10px]">Busca</span>
+          <Search className="w-4 h-4" />
+          <span className="text-[9px]">Busca</span>
         </button>
 
         <button
           onClick={() => setActiveTab('guia')}
-          className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-all cursor-pointer ${
+          className={`flex flex-col items-center gap-1 py-1 px-1.5 rounded-xl transition-all cursor-pointer ${
             activeTab === 'guia' ? 'text-[#1e3a8a] font-extrabold' : 'text-slate-500 font-semibold'
           }`}
         >
-          <BookOpen className="w-5 h-5" />
-          <span className="text-[10px]">Apostila</span>
+          <BookOpen className="w-4 h-4" />
+          <span className="text-[9px]">Apostila</span>
         </button>
       </footer>
     </div>
