@@ -3058,6 +3058,7 @@ export default function App() {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {/* TÓPICO 01: O que é Escala */}
                 <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-[#e2d8c7] space-y-2">
                   <div className="w-8 h-8 rounded-xl bg-emerald-200 text-emerald-950 flex items-center justify-center font-black text-xs">
                     01
@@ -3068,6 +3069,7 @@ export default function App() {
                   </p>
                 </div>
 
+                {/* TÓPICO 02: Como Nasce o Campo Harmônico */}
                 <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-[#e2d8c7] space-y-2">
                   <div className="w-8 h-8 rounded-xl bg-sky-200 text-sky-950 flex items-center justify-center font-black text-xs">
                     02
@@ -3078,58 +3080,163 @@ export default function App() {
                   </p>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-[#e2d8c7] space-y-2">
-                  <div className="w-8 h-8 rounded-xl bg-purple-200 text-purple-950 flex items-center justify-center font-black text-xs">
-                    03
-                  </div>
-                  <h3 className="font-black text-sm text-slate-900">A Passagem do Polegar</h3>
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    Como temos 5 dedos e a escala tem 7 notas, usamos a técnica da passagem do polegar por baixo do dedo médio para tocar a escala inteira com fluidez!
-                  </p>
-                </div>
-
-                {/* TÓPICO 04: O Segredo do 7º Grau (Substituição pelo 5º na 1ª Inversão) */}
-                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-amber-300 shadow-xs space-y-2 relative overflow-hidden">
+                {/* TÓPICO 03: COMO LER CIFRAS (O Guia Definitivo) */}
+                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-emerald-300 shadow-xs space-y-2 relative overflow-hidden">
                   <div className="flex items-center justify-between">
-                    <div className="w-8 h-8 rounded-xl bg-amber-300 text-amber-950 flex items-center justify-center font-black text-xs">
-                      04
+                    <div className="w-8 h-8 rounded-xl bg-emerald-300 text-emerald-950 flex items-center justify-center font-black text-xs">
+                      03
                     </div>
-                    <span className="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
-                      ★ Dica de Ouro
+                    <span className="text-[10px] font-black text-emerald-900 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-200">
+                      ★ Alfabeto Musical
                     </span>
                   </div>
 
                   <h3 className="font-black text-sm text-slate-900">
-                    O 7º Grau pode virar o 5º Grau na 1ª Inversão!
+                    Como Ler Cifras Sem Dificuldade
                   </h3>
 
                   <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                    No tom de Dó Maior, o 7º grau é o acorde diminuto <strong>B°</strong> (Si diminuto) ou <strong>Bm7(b5)</strong>. Por soar muito tenso para o ouvido e ser difícil de aplicar no teclado, os músicos usam um <strong>grande segredo harmônico</strong>:
+                    A cifra usa letras do alfabeto para representar as notas. Começa no <strong>A (Lá)</strong> e vai até o <strong>G (Sol)</strong>:
                   </p>
 
-                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
-                    <p className="font-bold">
-                      💡 Substitua o 7º grau (B°) pelo 5º grau com baixo na terça (G/B)!
+                  <div className="grid grid-cols-7 gap-1 text-center font-mono text-xs">
+                    <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                      <strong className="text-slate-900">A</strong>
+                      <span className="block text-[10px] text-slate-500">Lá</span>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                      <strong className="text-slate-900">B</strong>
+                      <span className="block text-[10px] text-slate-500">Si</span>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-amber-100 border border-amber-300">
+                      <strong className="text-amber-950">C</strong>
+                      <span className="block text-[10px] text-amber-800">Dó</span>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                      <strong className="text-slate-900">D</strong>
+                      <span className="block text-[10px] text-slate-500">Ré</span>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                      <strong className="text-slate-900">E</strong>
+                      <span className="block text-[10px] text-slate-500">Mi</span>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                      <strong className="text-slate-900">F</strong>
+                      <span className="block text-[10px] text-slate-500">Fá</span>
+                    </div>
+                    <div className="p-1.5 rounded-lg bg-slate-100 border border-slate-200">
+                      <strong className="text-slate-900">G</strong>
+                      <span className="block text-[10px] text-slate-500">Sol</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1 text-xs text-slate-700 pt-1">
+                    <p className="leading-tight">
+                      • <strong>Letra pura (ex: C, G):</strong> Acorde Maior (Dó Maior, Sol Maior).
                     </p>
-                    <p className="text-[11px] text-amber-900 leading-snug">
-                      O acorde <strong>G/B</strong> contém as notas <strong>Si, Ré e Sol</strong>. Ele mantém a nota Si no baixo caminhando para o Dó (C), conserva a função dominante que prepara a tônica, mas com um som <strong>muito mais doce, rico e fácil de tocar</strong>!
+                    <p className="leading-tight">
+                      • <strong>Letra + m (ex: Cm, Am):</strong> Acorde menor (Dó menor, Lá menor).
+                    </p>
+                    <p className="leading-tight">
+                      • <strong>Letra + 7 (ex: G7, C7):</strong> Com 7ª menor (tensão dominante).
+                    </p>
+                    <p className="leading-tight">
+                      • <strong>Letra + barra (ex: C/E, G/B):</strong> Acorde com baixo invertido! A mão direita toca o acorde da esquerda (C ou G) e a mão esquerda toca a nota após a barra (Mi ou Si).
                     </p>
                   </div>
 
                   <div className="flex items-center gap-1.5 pt-1">
                     <button
-                      onClick={() => synth.playChord([246.94, 293.66, 349.23], 1.6)}
-                      className="flex-1 py-1.5 px-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
-                      title="Ouvir acorde diminuto B°"
+                      onClick={() => synth.playChord([261.63, 329.63, 392.00], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                      title="Ouvir acorde C Maior"
                     >
-                      🔊 Ouvir 7º Grau (B°)
+                      ☀️ C (Maior)
                     </button>
                     <button
-                      onClick={() => synth.playChord([246.94, 293.66, 392.00], 1.8)}
-                      className="flex-1 py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-amber-950 text-[11px] font-black rounded-lg transition-colors cursor-pointer shadow-xs"
-                      title="Ouvir acorde G/B (5º grau na 1ª inversão)"
+                      onClick={() => synth.playChord([261.63, 311.13, 392.00], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-[#1e3a8a] hover:bg-blue-900 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                      title="Ouvir acorde Cm Menor"
                     >
-                      ✨ Ouvir G/B (5º na 1ª Inv.)
+                      🌙 Cm (Menor)
+                    </button>
+                    <button
+                      onClick={() => synth.playChord([261.63, 329.63, 392.00, 466.16], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-amber-950 text-[11px] font-black rounded-lg transition-colors cursor-pointer shadow-xs"
+                      title="Ouvir acorde C7 com sétima"
+                    >
+                      🔥 C7 (com 7ª)
+                    </button>
+                  </div>
+                </div>
+
+                {/* TÓPICO 04: INVERSÃO DE ACORDES (O Maior Segredo dos Tecladistas) */}
+                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-indigo-300 shadow-xs space-y-2 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <div className="w-8 h-8 rounded-xl bg-indigo-200 text-indigo-950 flex items-center justify-center font-black text-xs">
+                      04
+                    </div>
+                    <span className="text-[10px] font-black text-indigo-900 bg-indigo-100 px-2 py-0.5 rounded-full border border-indigo-200">
+                      ★ Segredo de Tecladista
+                    </span>
+                  </div>
+
+                  <h3 className="font-black text-sm text-slate-900">
+                    Inversão de Acordes: Toque Sem Pular as Mãos
+                  </h3>
+
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Inverter um acorde significa <strong>mudar qual nota fica no baixo (a mais grave)</strong>, sem alterar o nome do acorde. É a chave da elegância no piano!
+                  </p>
+
+                  <div className="space-y-1.5 text-xs">
+                    <div className="p-2 rounded-xl bg-slate-100 border border-slate-200 space-y-0.5">
+                      <span className="font-extrabold text-slate-900">🎹 Estado Fundamental:</span>
+                      <p className="text-[11px] text-slate-700 leading-snug">
+                        A <strong>Tônica</strong> é a nota mais grave. Exemplo em Dó: <strong>Dó - Mi - Sol</strong>.
+                      </p>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-indigo-50 border border-indigo-200 space-y-0.5">
+                      <span className="font-extrabold text-indigo-950">🎹 1ª Inversão (C/E):</span>
+                      <p className="text-[11px] text-indigo-900 leading-snug">
+                        A <strong>Terça</strong> vira o baixo. Exemplo: <strong>Mi - Sol - Dó</strong> (o Dó sobe 1 oitava).
+                      </p>
+                    </div>
+
+                    <div className="p-2 rounded-xl bg-sky-50 border border-sky-200 space-y-0.5">
+                      <span className="font-extrabold text-sky-950">🎹 2ª Inversão (C/G):</span>
+                      <p className="text-[11px] text-sky-900 leading-snug">
+                        A <strong>Quinta</strong> vira o baixo. Exemplo: <strong>Sol - Dó - Mi</strong>.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-2 rounded-xl bg-amber-50 border border-amber-200 text-[11px] text-amber-950 font-bold leading-snug">
+                    💡 <strong>Por que usar?</strong> Para trocar de <strong>Dó (C)</strong> para <strong>Fá (F)</strong>, em vez de pular a mão 20cm, basta tocar C fundamental (Dó-Mi-Sol) e F na 2ª inversão (Dó-Fá-Lá). A mão quase não se move!
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      onClick={() => synth.playChord([261.63, 329.63, 392.00], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                      title="Ouvir Fundamental Dó-Mi-Sol"
+                    >
+                      Fundam. (C)
+                    </button>
+                    <button
+                      onClick={() => synth.playChord([329.63, 392.00, 523.25], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow-xs"
+                      title="Ouvir 1ª Inversão Mi-Sol-Dó"
+                    >
+                      1ª Inv. (C/E)
+                    </button>
+                    <button
+                      onClick={() => synth.playChord([392.00, 523.25, 659.25], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-[#1e3a8a] hover:bg-blue-900 text-white text-[11px] font-bold rounded-lg transition-colors cursor-pointer shadow-xs"
+                      title="Ouvir 2ª Inversão Sol-Dó-Mi"
+                    >
+                      2ª Inv. (C/G)
                     </button>
                   </div>
                 </div>
@@ -3187,6 +3294,63 @@ export default function App() {
                       title="Ouvir Dó Menor (Cm)"
                     >
                       🌙 Ouvir Dó Menor (Cm)
+                    </button>
+                  </div>
+                </div>
+
+                {/* TÓPICO 06: A Passagem do Polegar */}
+                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-[#e2d8c7] space-y-2">
+                  <div className="w-8 h-8 rounded-xl bg-purple-200 text-purple-950 flex items-center justify-center font-black text-xs">
+                    06
+                  </div>
+                  <h3 className="font-black text-sm text-slate-900">A Passagem do Polegar na Escala</h3>
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Como temos 5 dedos e a escala tem 7 notas, usamos a técnica da passagem do polegar por baixo do dedo médio (1 - 2 - 3 ↻ 1 - 2 - 3 - 4 - 5) para tocar a escala inteira sem interrupções!
+                  </p>
+                </div>
+
+                {/* TÓPICO 07: O Segredo do 7º Grau (Substituição pelo 5º na 1ª Inversão) */}
+                <div className="p-4 rounded-2xl bg-[#fcfaf5] border-2 border-amber-300 shadow-xs space-y-2 relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <div className="w-8 h-8 rounded-xl bg-amber-300 text-amber-950 flex items-center justify-center font-black text-xs">
+                      07
+                    </div>
+                    <span className="text-[10px] font-black text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full border border-amber-200">
+                      ★ Dica de Ouro
+                    </span>
+                  </div>
+
+                  <h3 className="font-black text-sm text-slate-900">
+                    O 7º Grau pode virar o 5º Grau na 1ª Inversão!
+                  </h3>
+
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    No tom de Dó Maior, o 7º grau é o acorde diminuto <strong>B°</strong> (Si diminuto) ou <strong>Bm7(b5)</strong>. Por soar muito tenso para o ouvido e ser difícil de aplicar no teclado, os músicos usam um <strong>grande segredo harmônico</strong>:
+                  </p>
+
+                  <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1">
+                    <p className="font-bold">
+                      💡 Substitua o 7º grau (B°) pelo 5º grau com baixo na terça (G/B)!
+                    </p>
+                    <p className="text-[11px] text-amber-900 leading-snug">
+                      O acorde <strong>G/B</strong> contém as notas <strong>Si, Ré e Sol</strong>. Ele mantém a nota Si no baixo caminhando para o Dó (C), conserva a função dominante que prepara a tônica, mas com um som <strong>muito mais doce, rico e fácil de tocar</strong>!
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 pt-1">
+                    <button
+                      onClick={() => synth.playChord([246.94, 293.66, 349.23], 1.6)}
+                      className="flex-1 py-1.5 px-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-[11px] font-bold rounded-lg transition-colors cursor-pointer"
+                      title="Ouvir acorde diminuto B°"
+                    >
+                      🔊 Ouvir 7º Grau (B°)
+                    </button>
+                    <button
+                      onClick={() => synth.playChord([246.94, 293.66, 392.00], 1.8)}
+                      className="flex-1 py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-amber-950 text-[11px] font-black rounded-lg transition-colors cursor-pointer shadow-xs"
+                      title="Ouvir acorde G/B (5º grau na 1ª inversão)"
+                    >
+                      ✨ Ouvir G/B (5º na 1ª Inv.)
                     </button>
                   </div>
                 </div>
