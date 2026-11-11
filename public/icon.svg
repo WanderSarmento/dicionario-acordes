@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="50%" stop-color="#2563eb" />
+      <stop offset="100%" stop-color="#4f46e5" />
+    </linearGradient>
+    <linearGradient id="keyWhite" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="85%" stop-color="#f1f5f9" />
+      <stop offset="100%" stop-color="#cbd5e1" />
+    </linearGradient>
+    <linearGradient id="keyBlack" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#334155" />
+      <stop offset="60%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background rounded rectangle -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Inner glow & subtle border -->
+  <rect x="8" y="8" width="496" height="496" rx="104" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="4" />
+
+  <!-- Piano Body container with drop shadow -->
+  <g filter="url(#shadow)">
+    <!-- Piano Casing -->
+    <rect x="76" y="116" width="360" height="280" rx="28" fill="#090d16" />
+    <!-- Red felt strip (Steinway style) -->
+    <rect x="86" y="128" width="340" height="8" rx="2" fill="#ef4444" />
+
+    <!-- White Keys (7 keys) -->
+    <!-- key width: 340 / 7 ≈ 48.5px -->
+    <rect x="86" y="138" width="46" height="246" rx="6" fill="url(#keyWhite)" />
+    <rect x="135" y="138" width="46" height="246" rx="6" fill="url(#keyWhite)" />
+    <rect x="184" y="138" width="46" height="246" rx="6" fill="url(#keyWhite)" />
+    <rect x="233" y="138" width="46" height="246" rx="6" fill="url(#keyWhite)" />
+    <rect x="282" y="138" width="46" height="246" rx="6" fill="url(#keyWhite)" />
+    <rect x="331" y="138" width="46" height="246" rx="6" fill="url(#keyWhite)" />
+    <rect x="380" y="138" width="46" height="246" rx="6" fill="url(#keyWhite)" />
+
+    <!-- Active Chord Highlights on white keys -->
+    <!-- Key 1 (C - Root): Amber Highlight -->
+    <circle cx="109" cy="340" r="14" fill="#eab308" />
+    <text x="109" y="345" font-family="sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">1</text>
+
+    <!-- Key 3 (E - 3M): Sky Highlight -->
+    <circle cx="207" cy="340" r="14" fill="#0284c7" />
+    <text x="207" y="345" font-family="sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">3</text>
+
+    <!-- Key 5 (G - 5J): Indigo Highlight -->
+    <circle cx="305" cy="340" r="14" fill="#6366f1" />
+    <text x="305" y="345" font-family="sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">5</text>
+
+    <!-- Key 7 (B - 7M): Violet Highlight -->
+    <circle cx="403" cy="340" r="14" fill="#8b5cf6" />
+    <text x="403" y="345" font-family="sans-serif" font-weight="900" font-size="13" fill="#ffffff" text-anchor="middle">7</text>
+
+    <!-- Black Keys -->
+    <!-- C# (between 86 and 135) -->
+    <rect x="119" y="138" width="28" height="150" rx="4" fill="url(#keyBlack)" />
+    <!-- D# (between 135 and 184) -->
+    <rect x="168" y="138" width="28" height="150" rx="4" fill="url(#keyBlack)" />
+    <!-- F# (between 233 and 282) -->
+    <rect x="266" y="138" width="28" height="150" rx="4" fill="url(#keyBlack)" />
+    <!-- G# (between 282 and 331) -->
+    <rect x="315" y="138" width="28" height="150" rx="4" fill="url(#keyBlack)" />
+    <!-- A# (between 331 and 380) -->
+    <rect x="364" y="138" width="28" height="150" rx="4" fill="url(#keyBlack)" />
+  </g>
+
+  <!-- Musical Sparkle / Accent -->
+  <path d="M 420 84 Q 420 106 438 106 Q 420 106 420 128 Q 420 106 402 106 Q 420 106 420 84 Z" fill="#fef08a" />
+</svg>

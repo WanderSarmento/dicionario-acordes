@@ -1,0 +1,6 @@
+{
+  "name": "Harmonia - Dicionário & Visualizador de Acordes para Teclado",
+  "description": "Dicionário e visualizador interativo de acordes e do campo harmônico maior e menor para teclado e piano, com sintetizador realista Web Audio, inversões, dedilhado e exportação PNG.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
