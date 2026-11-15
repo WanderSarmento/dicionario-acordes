@@ -1,0 +1,90 @@
+{
+  "entities": {
+    "StudentRanking": {
+      "title": "StudentRanking",
+      "description": "Pontuacao e acertos publicos de um aluno nas missoes praticas (sem PII).",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "UID do usuario autenticado dono do registro",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Nome ou apelido publico escolhido pelo aluno para o mural de ranking",
+          "minLength": 2,
+          "maxLength": 40
+        },
+        "avatarEmoji": {
+          "type": "string",
+          "description": "Emoji escolhido pelo aluno no ranking",
+          "minLength": 1,
+          "maxLength": 12
+        },
+        "correctCount": {
+          "type": "integer",
+          "description": "Quantidade de missoes praticas unicas acertadas (0 a 20)"
+        },
+        "totalHits": {
+          "type": "integer",
+          "description": "Total acumulado de acertos do aluno"
+        },
+        "attemptsCount": {
+          "type": "integer",
+          "description": "Total de tentativas feitas pelo aluno"
+        },
+        "accuracy": {
+          "type": "integer",
+          "description": "Taxa de aproveitamento de 0 a 100"
+        },
+        "bestStreak": {
+          "type": "integer",
+          "description": "Maior sequencia de acertos seguidos"
+        },
+        "completedIds": {
+          "type": "array",
+          "description": "Lista dos IDs das missoes concluidas (maximo 20)"
+        },
+        "isPublic": {
+          "type": "boolean",
+          "description": "Indica se o registro aparece no mural publico do ranking"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de criacao validado pelo servidor"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp de atualizacao validado pelo servidor"
+        }
+      },
+      "required": [
+        "uid",
+        "displayName",
+        "avatarEmoji",
+        "correctCount",
+        "totalHits",
+        "attemptsCount",
+        "accuracy",
+        "bestStreak",
+        "completedIds",
+        "isPublic",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/rankings/{userId}": {
+      "schema": {
+        "$ref": "#/entities/StudentRanking"
+      },
+      "description": "Placar publico de acertos dos alunos nas missoes praticas"
+    }
+  }
+}

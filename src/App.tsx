@@ -51,6 +51,20 @@ import {
 } from 'lucide-react';
 import { usePWAInstall } from './hooks/usePWAInstall';
 import { useOnlineStatus } from './hooks/useOnlineStatus';
+import type { User } from 'firebase/auth';
+import {
+  subscribeToAuth,
+  signInWithGoogle,
+  signOutGoogle,
+  subscribeToRankings,
+  fetchMyRanking,
+  upsertMyRanking,
+  removeRankingEntry,
+  sanitizeDisplayName,
+  sanitizeCompletedIds,
+  type StudentRankingEntry
+} from './firebase';
+import { StudentRankingBoard } from './components/StudentRankingBoard';
 
 /* =====================================================================
    1. SINTETIZADOR DE PIANO COM WEB AUDIO API (Sons realistas com harmônicos)
@@ -868,13 +882,192 @@ export default function App() {
     cadencia: false
   });
 
-  // Desafios Didáticos Práticos (Quizzes Semanais por Assunto)
+  // Desafios Didáticos Práticos (Quizzes Semanais por Assunto) & Ranking
   const [selectedQuizWeek, setSelectedQuizWeek] = useState<string>('todas');
-  const [quizScore, setQuizScore] = useState<number>(0);
+  const [quizScore, setQuizScore] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('harmonia_quiz_stats_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed.completedIds) ? parsed.completedIds.length : 0;
+      }
+    } catch { /* ignore */ }
+    return 0;
+  });
   const [quizAnswerFeedback, setQuizAnswerFeedback] = useState<string | null>(null);
   const [selectedQuizOption, setSelectedQuizOption] = useState<number | null>(null);
   const [currentQuizIndex, setCurrentQuizIndex] = useState<number>(0);
-  const [completedQuizIds, setCompletedQuizIds] = useState<number[]>([]);
+  const [completedQuizIds, setCompletedQuizIds] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('harmonia_quiz_stats_v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed.completedIds)) return sanitizeCompletedIds(parsed.completedIds);
+      }
+    } catch { /* ignore */ }
+    return [];
+  });
+  const [totalHits, setTotalHits] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('harmonia_quiz_stats_v1');
+      if (saved) return Number(JSON.parse(saved).totalHits || 0);
+    } catch { /* ignore */ }
+    return 0;
+  });
+  const [attemptsCount, setAttemptsCount] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('harmonia_quiz_stats_v1');
+      if (saved) return Number(JSON.parse(saved).attemptsCount || 0);
+    } catch { /* ignore */ }
+    return 0;
+  });
+  const [currentStreak, setCurrentStreak] = useState<number>(0);
+  const [bestStreak, setBestStreak] = useState<number>(() => {
+    try {
+      const saved = localStorage.getItem('harmonia_quiz_stats_v1');
+      if (saved) return Number(JSON.parse(saved).bestStreak || 0);
+    } catch { /* ignore */ }
+    return 0;
+  });
+  const [studentNickname, setStudentNickname] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('harmonia_quiz_stats_v1');
+      if (saved && JSON.parse(saved).studentNickname) return String(JSON.parse(saved).studentNickname);
+    } catch { /* ignore */ }
+    return 'Aluno Harmonia';
+  });
+  const [studentEmoji, setStudentEmoji] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem('harmonia_quiz_stats_v1');
+      if (saved && JSON.parse(saved).studentEmoji) return String(JSON.parse(saved).studentEmoji);
+    } catch { /* ignore */ }
+    return '🎹';
+  });
+
+  // Firebase Auth & Ranking Global
+  const [authUser, setAuthUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [rankings, setRankings] = useState<StudentRankingEntry[]>([]);
+  const [rankingsLoading, setRankingsLoading] = useState<boolean>(true);
+  const [rankingError, setRankingError] = useState<string | null>(null);
+  const [isRankingSyncing, setIsRankingSyncing] = useState<boolean>(false);
+  const rankingSectionRef = useRef<HTMLDivElement | null>(null);
+  const latestQuizStatsRef = useRef({
+    completedQuizIds,
+    totalHits,
+    attemptsCount,
+    bestStreak,
+    studentNickname,
+    studentEmoji,
+  });
+
+  useEffect(() => {
+    latestQuizStatsRef.current = {
+      completedQuizIds,
+      totalHits,
+      attemptsCount,
+      bestStreak,
+      studentNickname,
+      studentEmoji,
+    };
+  }, [completedQuizIds, totalHits, attemptsCount, bestStreak, studentNickname, studentEmoji]);
+
+  // Salva progresso local no navegador
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        'harmonia_quiz_stats_v1',
+        JSON.stringify({
+          completedIds: completedQuizIds,
+          totalHits,
+          attemptsCount,
+          bestStreak,
+          studentNickname,
+          studentEmoji,
+        })
+      );
+    } catch {
+      /* ignore storage errors */
+    }
+  }, [completedQuizIds, totalHits, attemptsCount, bestStreak, studentNickname, studentEmoji]);
+
+  // Escuta autentica\u00e7\u00e3o e placar em tempo real no Firestore
+  useEffect(() => {
+    const unsubRankings = subscribeToRankings(
+      (entries) => {
+        setRankings(entries);
+        setRankingsLoading(false);
+        setRankingError(null);
+      },
+      (err) => {
+        setRankingsLoading(false);
+        const msg = err.message || '';
+        if (msg.includes('Quota exceeded')) {
+          setRankingError('Limite diário gratuito do banco de dados atingido. O placar será retomado amanhã.');
+        } else {
+          setRankingError('Não foi possível sincronizar o ranking online no momento.');
+        }
+      }
+    );
+
+    const unsubAuth = subscribeToAuth(async (user) => {
+      setAuthUser(user);
+      setAuthLoading(false);
+      if (user) {
+        try {
+          setIsRankingSyncing(true);
+          const localStats = latestQuizStatsRef.current;
+          const cloud = await fetchMyRanking(user.uid);
+          const defaultName = sanitizeDisplayName(
+            cloud?.displayName ||
+              (localStats.studentNickname !== 'Aluno Harmonia'
+                ? localStats.studentNickname
+                : user.displayName?.split(' ').slice(0, 2).join(' ') || 'Aluno Harmonia')
+          );
+          const defaultEmoji = cloud?.avatarEmoji || localStats.studentEmoji || '🎹';
+
+          const mergedIds = sanitizeCompletedIds([
+            ...localStats.completedQuizIds,
+            ...(cloud?.completedIds || []),
+          ]);
+          const mergedHits = Math.max(localStats.totalHits, cloud?.totalHits || 0);
+          const mergedAttempts = Math.max(
+            localStats.attemptsCount,
+            cloud?.attemptsCount || 0,
+            mergedHits
+          );
+          const mergedBestStreak = Math.max(localStats.bestStreak, cloud?.bestStreak || 0);
+
+          setStudentNickname(defaultName);
+          setStudentEmoji(defaultEmoji);
+          setCompletedQuizIds(mergedIds);
+          setQuizScore(mergedIds.length);
+          setTotalHits(mergedHits);
+          setAttemptsCount(mergedAttempts);
+          setBestStreak(mergedBestStreak);
+
+          await upsertMyRanking({
+            uid: user.uid,
+            displayName: defaultName,
+            avatarEmoji: defaultEmoji,
+            completedIds: mergedIds,
+            totalHits: mergedHits,
+            attemptsCount: mergedAttempts,
+            bestStreak: mergedBestStreak,
+          });
+        } catch (err) {
+          console.error(err);
+        } finally {
+          setIsRankingSyncing(false);
+        }
+      }
+    });
+
+    return () => {
+      unsubRankings();
+      unsubAuth();
+    };
+  }, []);
 
   // Exportação PNG
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -1903,20 +2096,79 @@ export default function App() {
     setSelectedQuizOption(null);
   };
 
+  const syncScoreToCloud = async (params: {
+    ids: number[];
+    hits: number;
+    attempts: number;
+    streak: number;
+    name?: string;
+    emoji?: string;
+  }) => {
+    if (!authUser) return;
+    setIsRankingSyncing(true);
+    try {
+      await upsertMyRanking({
+        uid: authUser.uid,
+        displayName: params.name ?? studentNickname,
+        avatarEmoji: params.emoji ?? studentEmoji,
+        completedIds: params.ids,
+        totalHits: params.hits,
+        attemptsCount: params.attempts,
+        bestStreak: params.streak,
+      });
+      setRankingError(null);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('Quota exceeded')) {
+        setRankingError('Limite diário gratuito do banco de dados atingido. O placar será retomado amanhã.');
+      }
+    } finally {
+      setIsRankingSyncing(false);
+    }
+  };
+
   const handleAnswerQuiz = (selectedOptIdx: number) => {
     const q = filteredQuizQuestions[currentQuizIndex] || filteredQuizQuestions[0];
     if (!q) return;
     setSelectedQuizOption(selectedOptIdx);
+    const nextAttempts = attemptsCount + 1;
+    setAttemptsCount(nextAttempts);
+
     if (selectedOptIdx === q.correctIndex) {
       synth.playCelebration();
+      const nextHits = totalHits + 1;
+      const nextStreak = currentStreak + 1;
+      const nextBest = Math.max(bestStreak, nextStreak);
+      const nextIds = completedQuizIds.includes(q.id)
+        ? completedQuizIds
+        : [...completedQuizIds, q.id];
+
+      setTotalHits(nextHits);
+      setCurrentStreak(nextStreak);
+      setBestStreak(nextBest);
       if (!completedQuizIds.includes(q.id)) {
-        setQuizScore(prev => prev + 1);
-        setCompletedQuizIds(prev => [...prev, q.id]);
+        setQuizScore(nextIds.length);
+        setCompletedQuizIds(nextIds);
       }
       setQuizAnswerFeedback('correto');
+
+      void syncScoreToCloud({
+        ids: nextIds,
+        hits: nextHits,
+        attempts: nextAttempts,
+        streak: nextBest,
+      });
     } else {
       synth.playChord([261.63, 277.18], 0.6);
+      setCurrentStreak(0);
       setQuizAnswerFeedback('incorreto');
+
+      void syncScoreToCloud({
+        ids: completedQuizIds,
+        hits: totalHits,
+        attempts: nextAttempts,
+        streak: bestStreak,
+      });
     }
   };
 
@@ -3209,14 +3461,32 @@ export default function App() {
                     <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
                     <span>Concluídos: {completedQuizIds.length} / {QUIZ_QUESTIONS.length} ⭐</span>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => rankingSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                    className="flex items-center gap-1.5 px-3 py-2 rounded-2xl bg-[#1e3a8a] hover:bg-blue-900 text-white font-extrabold text-xs cursor-pointer transition-all shadow-2xs"
+                  >
+                    <Award className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Ver Ranking ({rankings.length})</span>
+                  </button>
                   {completedQuizIds.length > 0 && (
                     <button
                       onClick={() => {
                         setCompletedQuizIds([]);
                         setQuizScore(0);
+                        setTotalHits(0);
+                        setAttemptsCount(0);
+                        setCurrentStreak(0);
+                        setBestStreak(0);
                         setQuizAnswerFeedback(null);
                         setSelectedQuizOption(null);
                         setCurrentQuizIndex(0);
+                        void syncScoreToCloud({
+                          ids: [],
+                          hits: 0,
+                          attempts: 0,
+                          streak: 0,
+                        });
                       }}
                       className="flex items-center gap-1 px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] border border-slate-300 cursor-pointer transition-all"
                       title="Reiniciar progresso dos quizzes"
@@ -3476,6 +3746,55 @@ export default function App() {
                 );
               })()}
 
+            </div>
+
+            {/* Mural de Ranking de Acertos dos Alunos */}
+            <div ref={rankingSectionRef}>
+              <StudentRankingBoard
+                user={authUser}
+                authLoading={authLoading}
+                rankings={rankings}
+                rankingsLoading={rankingsLoading}
+                rankingError={rankingError}
+                isSyncing={isRankingSyncing}
+                localCompletedCount={completedQuizIds.length}
+                totalQuestionsCount={QUIZ_QUESTIONS.length}
+                localTotalHits={totalHits}
+                localAttemptsCount={attemptsCount}
+                localBestStreak={bestStreak}
+                studentNickname={studentNickname}
+                studentEmoji={studentEmoji}
+                onSignIn={async () => {
+                  await signInWithGoogle();
+                }}
+                onSignOut={async () => {
+                  await signOutGoogle();
+                }}
+                onUpdateProfile={async (newName, newEmoji) => {
+                  const cleanName = sanitizeDisplayName(newName);
+                  setStudentNickname(cleanName);
+                  setStudentEmoji(newEmoji);
+                  await syncScoreToCloud({
+                    ids: completedQuizIds,
+                    hits: totalHits,
+                    attempts: attemptsCount,
+                    streak: bestStreak,
+                    name: cleanName,
+                    emoji: newEmoji,
+                  });
+                }}
+                onSyncNow={async () => {
+                  await syncScoreToCloud({
+                    ids: completedQuizIds,
+                    hits: totalHits,
+                    attempts: attemptsCount,
+                    streak: bestStreak,
+                  });
+                }}
+                onDeleteEntry={async (uid) => {
+                  await removeRankingEntry(uid);
+                }}
+              />
             </div>
           </div>
         )}
